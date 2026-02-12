@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YOUR TITLE</title>
+  <meta name="description" content="ポートフォリオ / ゲーム / Note" />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#0b0b0f;
+      --muted:#5b5f6a;
+      --card:#f6f7f9;
+      --line:#e6e8ee;
+      --shadow: 0 10px 30px rgba(0,0,0,.06);
+      --radius: 18px;
+      --max: 1100px;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; }
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+      background:var(--bg);
+      color:var(--fg);
+      line-height:1.65;
+    }
+    a{ color:inherit; text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .wrap{ max-width: var(--max); margin: 0 auto; padding: 26px 18px 70px; }
+
+    /* Header */
+    header{
+      position: sticky;
+      top:0;
+      background: rgba(255,255,255,.75);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      z-index: 10;
+    }
+    .nav{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+    .dot{
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--fg);
+      box-shadow: 0 0 0 4px rgba(11,11,15,.08);
+    }
+    .tabs{
+      display:flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .tabs a{
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .tabs a:hover{
+      border-color: var(--line);
+      background: rgba(0,0,0,.02);
+      text-decoration:none;
+    }
+
+    /* Hero */
+    .hero{
+      padding: 34px 0 10px;
+    }
+    .hero h1{
+      font-size: clamp(26px, 3.6vw, 44px);
+      line-height: 1.1;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+    .hero p{
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(14px, 1.6vw, 18px);
+      max-width: 70ch;
+    }
+    .hero-actions{
+      margin-top: 18px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: none;
+      font-size: 14px;
+      color: var(--fg);
+    }
+    .btn.primary{
+      background: var(--fg);
+      color: #fff;
+      border-color: var(--fg);
+    }
+    .btn:hover{ text-decoration:none; filter: brightness(.99); }
+
+    /* Sections */
+    section{
+      margin-top: 28px;
+      padding-top: 10px;
+    }
+    .section-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 16px;
+      margin: 18px 0 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+    }
+    .section-head h2{
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: .2px;
+    }
+    .section-head .sub{
+      margin:0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Cards grid: 3 columns */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 560px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      overflow:hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(0,0,0,.08);
+      text-decoration:none;
+    }
+    .thumb{
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #eef1f7, #f7f8fb);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: rgba(11,11,15,.45);
+      font-weight: 650;
+      letter-spacing: .3px;
+      border-bottom: 1px solid var(--line);
+    }
+    .card-body{
+      padding: 12px 12px 14px;
+    }
+    .card-title{
+      margin: 0 0 6px;
+      font-size: 15px;
+      letter-spacing: .1px;
+    }
+    .card-desc{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* YouTube link card */
+    .yt{
+      display:flex;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .yt-badge{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,0,0,.08);
+      border: 1px solid rgba(255,0,0,.18);
+      font-weight: 650;
+    }
+    .yt small{ color: var(--muted); display:block; margin-top: 2px; }
+
+    footer{
+      margin-top: 46px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="nav">
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        <span>YOUR TITLE</span>
+      </div>
+      <nav class="tabs" aria-label="site">
+        <a href="#about">自己紹介</a>
+        <a href="#games">GAME</a>
+        <a href="#notes">Note</a>
+        <a href="#youtube">YouTube</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Hero -->
+    <div class="hero">
+      <h1>YOUR TITLE</h1>
+      <p>
+        ここに短い自己紹介の要約を入れます。<br />
+        「ゲーム / 技術メモ / 実験」をまとめた拠点。リンクは後で差し替え。
+      </p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#games">ゲームを見る</a>
+        <a class="btn" href="#notes">Noteを見る</a>
+        <a class="btn" href="#about">自己紹介</a>
+      </div>
+    </div>
+
+    <!-- About -->
+    <section id="about">
+      <div class="section-head">
+        <div>
+          <h2>自己紹介</h2>
+          <p class="sub">プロフィール / 連絡先 / 活動リンク</p>
+        </div>
+      </div>
+
+      <div class="yt" style="justify-content:space-between;">
+        <div>
+          <strong>YOUR NAME</strong>
+          <small>一言：ここに短い肩書き（例：ゲーム開発 / 技術・AI実験）</small>
+        </div>
+        <!-- ここを自己紹介ページ（別ページ）にしてもOK -->
+        <a class="btn" href="about/index.html">自己紹介ページへ（後で作る）</a>
+      </div>
+    </section>
+
+    <!-- YouTube -->
+    <section id="youtube">
+      <div class="section-head">
+        <div>
+          <h2>YouTube（1本）</h2>
+          <p class="sub">代表動画へのリンク（埋め込みにしてもOK）</p>
+        </div>
+      </div>
+
+      <!-- ここはリンクだけ。後でURL差し替え -->
+      <a class="yt" href="#" target="_blank" rel="noopener">
+        <div class="yt-badge">▶ YouTube</div>
+        <div>
+          <strong>代表動画タイトル（仮）</strong>
+          <small>クリックでYouTubeへ（URLは後で入れる）</small>
+        </div>
+      </a>
+    </section>
+
+    <!-- Games -->
+    <section id="games">
+      <div class="section-head">
+        <div>
+          <h2>GAME</h2>
+          <p class="sub">サムネイルをクリックするとゲームが起動</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Game Card 1 -->
+        <a class="card" href="#" aria-label="Game 1">
+          <div class="thumb">GAME THUMB 1</div>
+          <div class="card-body">
+            <p class="card-title">ゲームタイトル 1（仮）</p>
+            <p class="card-desc">短い説明。例：1分で遊べるミニゲーム。</p>
+          </div>
+        </a>
+
+        <!-- Game Card 2 -->
+        <a class="card" href="#" aria-label="Game 2">
+          <div class="thumb">GAME THUMB 2</div>
+          <div class="card-body">
+            <p class="card-title">ゲームタイトル 2（仮）</p>
+            <p class="card-desc">短い説明。例：戦略パズル。</p>
+          </div>
+        </a>
+
+        <!-- Game Card 3 -->
+        <a class="card" href="#" aria-label="Game 3">
+          <div class="thumb">GAME THUMB 3</div>
+          <div class="card-body">
+            <p class="card-title">ゲームタイトル 3（仮）</p>
+            <p class="card-desc">短い説明。例：AI実験のデモ。</p>
+          </div>
+        </a>
+      </div>
+
+      <div style="margin-top:12px; color:var(--muted); font-size:13px;">
+        ※ ゲーム実体を置くときは <code>/games/game1/index.html</code> のようなフォルダに置いて、上のリンクを差し替えます。
+      </div>
+    </section>
+
+    <!-- Notes -->
+    <section id="notes">
+      <div class="section-head">
+        <div>
+          <h2>Note記事</h2>
+          <p class="sub">サムネイルをクリックするとNoteへ</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Note Card 1 -->
+        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 1">
+          <div class="thumb">NOTE THUMB 1</div>
+          <div class="card-body">
+            <p class="card-title">記事タイトル 1（仮）</p>
+            <p class="card-desc">記事の短い要約（仮）。</p>
+          </div>
+        </a>
+
+        <!-- Note Card 2 -->
+        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 2">
+          <div class="thumb">NOTE THUMB 2</div>
+          <div class="card-body">
+            <p class="card-title">記事タイトル 2（仮）</p>
+            <p class="card-desc">記事の短い要約（仮）。</p>
+          </div>
+        </a>
+
+        <!-- Note Card 3 -->
+        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 3">
+          <div class="thumb">NOTE THUMB 3</div>
+          <div class="card-body">
+            <p class="card-title">記事タイトル 3（仮）</p>
+            <p class="card-desc">記事の短い要約（仮）。</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <div>© <span id="y"></span> YOUR NAME. Built with GitHub Pages.</div>
+    </footer>
+  </main>
+
+  <script>
+   document.getElementById("y").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
