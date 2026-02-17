@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>YOUR TITLE</title>
+  <title>Take AI LABO</title>
   <meta name="description" content="ポートフォリオ / ゲーム / Note" />
   <style>
     :root{
@@ -180,6 +180,13 @@
       font-weight: 650;
       letter-spacing: .3px;
       border-bottom: 1px solid var(--line);
+      overflow:hidden;
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
     }
     .card-body{
       padding: 12px 12px 14px;
@@ -193,6 +200,11 @@
       margin: 0;
       color: var(--muted);
       font-size: 13px;
+    }
+    .card-date{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 11px;
     }
 
     /* YouTube link card */
@@ -234,7 +246,7 @@
     <div class="nav">
       <div class="brand">
         <span class="dot" aria-hidden="true"></span>
-        <span>YOUR TITLE</span>
+        <span>Take AI LABO</span>
       </div>
       <nav class="tabs" aria-label="site">
         <a href="#about">自己紹介</a>
@@ -248,10 +260,9 @@
   <main class="wrap">
     <!-- Hero -->
     <div class="hero">
-      <h1>YOUR TITLE</h1>
+      <h1>Claude Codeで学ぶノーコードゲームプログラミング実験室</h1>
       <p>
-        ここに短い自己紹介の要約を入れます。<br />
-        「ゲーム / 技術メモ / 実験」をまとめた拠点。リンクは後で差し替え。
+        「ノーコードでアイデアを形にしよう！」をコンセプトに思いついたゲームアイデアを実験する場です。<br />
       </p>
       <div class="hero-actions">
         <a class="btn primary" href="#games">ゲームを見る</a>
@@ -265,17 +276,15 @@
       <div class="section-head">
         <div>
           <h2>自己紹介</h2>
-          <p class="sub">プロフィール / 連絡先 / 活動リンク</p>
         </div>
       </div>
 
       <div class="yt" style="justify-content:space-between;">
         <div>
-          <strong>YOUR NAME</strong>
-          <small>一言：ここに短い肩書き（例：ゲーム開発 / 技術・AI実験）</small>
+          <strong>Take</strong>
+          <small> 元ゲームプログラマー、元ゲームディレクター。数々のプロジェクトでメインプログラマーを経験。その後、自身の企画でも商品化を経験。小粒なパズルゲームが好き。「アイデアをノーコードで形にしよう！」をコンセプトに記事を書いています。</small>
         </div>
         <!-- ここを自己紹介ページ（別ページ）にしてもOK -->
-        <a class="btn" href="about/index.html">自己紹介ページへ（後で作る）</a>
       </div>
     </section>
 
@@ -309,35 +318,33 @@
 
       <div class="grid">
         <!-- Game Card 1 -->
-        <a class="card" href="#" aria-label="Game 1">
-          <div class="thumb">GAME THUMB 1</div>
+        <a class="card" href="Game001/index.html" aria-label="Game 1">
+          <div class="thumb"><img src="images/game001_thumb.png" alt="立体オセロ"></div>
           <div class="card-body">
-            <p class="card-title">ゲームタイトル 1（仮）</p>
-            <p class="card-desc">短い説明。例：1分で遊べるミニゲーム。</p>
+            <p class="card-title">立体オセロ</p>
+            <p class="card-desc">2x2の面で構成された立方体で遊ぶオセロです。</p>
+            <p class="card-date">公開日:2026-02-16</p>
           </div>
         </a>
 
         <!-- Game Card 2 -->
-        <a class="card" href="#" aria-label="Game 2">
-          <div class="thumb">GAME THUMB 2</div>
+        <a class="card" href="Game002/index.html" aria-label="Game 2">
+          <div class="thumb"><img src="images/game002_thumb.png" alt="円柱テトリス"></div>
           <div class="card-body">
-            <p class="card-title">ゲームタイトル 2（仮）</p>
-            <p class="card-desc">短い説明。例：戦略パズル。</p>
+            <p class="card-title">円柱テトリス</p>
+            <p class="card-desc">円柱上で遊ぶテトリスゲームです。</p>
+            <p class="card-date">公開日:2026-02-16</p>
           </div>
         </a>
 
         <!-- Game Card 3 -->
-        <a class="card" href="#" aria-label="Game 3">
-          <div class="thumb">GAME THUMB 3</div>
+        <div class="card" style="opacity:.5; pointer-events:none;">
+          <div class="thumb">制作中</div>
           <div class="card-body">
-            <p class="card-title">ゲームタイトル 3（仮）</p>
-            <p class="card-desc">短い説明。例：AI実験のデモ。</p>
+            <p class="card-title">制作中</p>
+            <p class="card-desc">Coming Soon...</p>
           </div>
-        </a>
-      </div>
-
-      <div style="margin-top:12px; color:var(--muted); font-size:13px;">
-        ※ ゲーム実体を置くときは <code>/games/game1/index.html</code> のようなフォルダに置いて、上のリンクを差し替えます。
+        </div>
       </div>
     </section>
 
@@ -352,36 +359,36 @@
 
       <div class="grid">
         <!-- Note Card 1 -->
-        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 1">
-          <div class="thumb">NOTE THUMB 1</div>
+        <div class="card" style="opacity:.5; pointer-events:none;">
+          <div class="thumb">制作中</div>
           <div class="card-body">
-            <p class="card-title">記事タイトル 1（仮）</p>
-            <p class="card-desc">記事の短い要約（仮）。</p>
+            <p class="card-title">制作中</p>
+            <p class="card-desc">Coming Soon...</p>
           </div>
-        </a>
+        </div>
 
         <!-- Note Card 2 -->
-        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 2">
-          <div class="thumb">NOTE THUMB 2</div>
+        <div class="card" style="opacity:.5; pointer-events:none;">
+          <div class="thumb">制作中</div>
           <div class="card-body">
-            <p class="card-title">記事タイトル 2（仮）</p>
-            <p class="card-desc">記事の短い要約（仮）。</p>
+            <p class="card-title">制作中</p>
+            <p class="card-desc">Coming Soon...</p>
           </div>
-        </a>
+        </div>
 
         <!-- Note Card 3 -->
-        <a class="card" href="#" target="_blank" rel="noopener" aria-label="Note 3">
-          <div class="thumb">NOTE THUMB 3</div>
+        <div class="card" style="opacity:.5; pointer-events:none;">
+          <div class="thumb">制作中</div>
           <div class="card-body">
-            <p class="card-title">記事タイトル 3（仮）</p>
-            <p class="card-desc">記事の短い要約（仮）。</p>
+            <p class="card-title">制作中</p>
+            <p class="card-desc">Coming Soon...</p>
           </div>
-        </a>
+        </div>
       </div>
     </section>
 
     <footer>
-      <div>© <span id="y"></span> YOUR NAME. Built with GitHub Pages.</div>
+      <div>© <span id="y"></span> Take. Built with GitHub Pages.</div>
     </footer>
   </main>
 
