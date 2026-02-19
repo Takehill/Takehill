@@ -2,10 +2,18 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Cube Othello</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  touch-action: none;
+}
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,34 +22,36 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
   user-select: none;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 h1 {
-  font-size: 32px;
+  font-size: clamp(20px, 5vw, 32px);
   letter-spacing: 3px;
   color: #e94560;
+  margin-top: 8px;
+  flex-shrink: 0;
 }
 
 #info-bar {
   display: flex;
-  gap: 32px;
+  gap: clamp(12px, 4vw, 32px);
   align-items: center;
-  margin: 14px 0 4px;
-  font-size: 20px;
+  margin: 6px 0 2px;
+  font-size: clamp(14px, 3.5vw, 20px);
+  flex-shrink: 0;
 }
 
 #info-bar .score {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 #info-bar .piece-icon {
-  width: 22px; height: 22px;
+  width: clamp(16px, 3.5vw, 22px);
+  height: clamp(16px, 3.5vw, 22px);
   border-radius: 50%;
   display: inline-block;
   border: 1px solid #888;
@@ -56,19 +66,24 @@ h1 {
 }
 
 #message {
-  height: 32px;
-  line-height: 32px;
-  font-size: 18px;
+  height: 28px;
+  line-height: 28px;
+  font-size: clamp(13px, 3vw, 18px);
   color: #ffd700;
   text-align: center;
+  flex-shrink: 0;
 }
 
 #scene {
-  width: 520px;
-  height: 520px;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 520px;
   perspective: 1100px;
-  margin: 8px auto;
   cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
 }
 
 #scene:active { cursor: grabbing; }
@@ -82,6 +97,7 @@ h1 {
 }
 
 #cube {
+  /* サイズはJSで動的に設定 */
   width: 240px;
   height: 240px;
   position: relative;
@@ -91,8 +107,8 @@ h1 {
 
 .face {
   position: absolute;
-  width: 240px;
-  height: 240px;
+  width: var(--face-size, 240px);
+  height: var(--face-size, 240px);
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
@@ -104,12 +120,12 @@ h1 {
   pointer-events: none;
 }
 
-.face-top    { background: rgba(76, 175, 80, 0.85); transform: rotateX(90deg)  translateZ(120px); }
-.face-bottom { background: rgba(76, 175, 80, 0.85); transform: rotateX(-90deg) translateZ(120px); }
-.face-front  { background: rgba(56, 142, 60, 0.85); transform:                 translateZ(120px); }
-.face-back   { background: rgba(56, 142, 60, 0.85); transform: rotateY(180deg) translateZ(120px); }
-.face-right  { background: rgba(67, 160, 71, 0.85); transform: rotateY(90deg)  translateZ(120px); }
-.face-left   { background: rgba(67, 160, 71, 0.85); transform: rotateY(-90deg) translateZ(120px); }
+.face-top    { background: rgba(76, 175, 80, 0.85); transform: rotateX(90deg)  translateZ(var(--half-face, 120px)); }
+.face-bottom { background: rgba(76, 175, 80, 0.85); transform: rotateX(-90deg) translateZ(var(--half-face, 120px)); }
+.face-front  { background: rgba(56, 142, 60, 0.85); transform:                 translateZ(var(--half-face, 120px)); }
+.face-back   { background: rgba(56, 142, 60, 0.85); transform: rotateY(180deg) translateZ(var(--half-face, 120px)); }
+.face-right  { background: rgba(67, 160, 71, 0.85); transform: rotateY(90deg)  translateZ(var(--half-face, 120px)); }
+.face-left   { background: rgba(67, 160, 71, 0.85); transform: rotateY(-90deg) translateZ(var(--half-face, 120px)); }
 
 .face-label {
   position: absolute;
@@ -182,18 +198,19 @@ h1 {
 }
 
 #controls {
-  margin-top: 8px;
+  margin: 6px 0;
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 button {
-  padding: 10px 28px;
+  padding: 8px 20px;
   border: none;
   border-radius: 5px;
   background: #e94560;
   color: white;
-  font-size: 16px;
+  font-size: clamp(13px, 3vw, 16px);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -202,11 +219,13 @@ button:hover { background: #c73650; }
 button:disabled { background: #666; cursor: not-allowed; }
 
 #help-text {
-  margin-top: 14px;
-  font-size: 14px;
+  margin-bottom: 8px;
+  font-size: clamp(11px, 2.5vw, 14px);
   color: #888;
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.5;
+  padding: 0 12px;
+  flex-shrink: 0;
 }
 </style>
 </head>
@@ -657,6 +676,25 @@ function getBestMove(board, aiColor) {
 const cubeEl = document.getElementById('cube');
 const sceneEl = document.getElementById('scene');
 
+// -------------------------------------------------------
+// RESPONSIVE SIZING
+// -------------------------------------------------------
+function resizeCube() {
+  const sceneRect = sceneEl.getBoundingClientRect();
+  const available = Math.min(sceneRect.width, sceneRect.height);
+  // キューブの見た目サイズは利用可能領域の45%程度（回転時にはみ出さないよう）
+  const faceSize = Math.max(100, Math.floor(available * 0.45));
+  const half = faceSize / 2;
+
+  cubeEl.style.width = faceSize + 'px';
+  cubeEl.style.height = faceSize + 'px';
+  cubeEl.style.setProperty('--face-size', faceSize + 'px');
+  cubeEl.style.setProperty('--half-face', half + 'px');
+}
+
+window.addEventListener('resize', resizeCube);
+window.addEventListener('orientationchange', () => setTimeout(resizeCube, 200));
+
 const FACE_CLASSES = ['face-top', 'face-front', 'face-right', 'face-back', 'face-left', 'face-bottom'];
 let cellElements = []; // indexed by cellIndex
 
@@ -774,16 +812,18 @@ document.addEventListener('mousemove', e => {
 
 document.addEventListener('mouseup', () => { isDragging = false; });
 
-// Touch support
+// Touch support（preventDefaultでスクロール・バウンスを防止）
 sceneEl.addEventListener('touchstart', e => {
+  e.preventDefault();
   isDragging = true;
   dragMoved = false;
   dragStartX = e.touches[0].clientX;
   dragStartY = e.touches[0].clientY;
-}, { passive: true });
+}, { passive: false });
 
 document.addEventListener('touchmove', e => {
   if (!isDragging) return;
+  e.preventDefault();
   const dx = e.touches[0].clientX - dragStartX;
   const dy = e.touches[0].clientY - dragStartY;
   if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
@@ -792,7 +832,7 @@ document.addEventListener('touchmove', e => {
   dragStartX = e.touches[0].clientX;
   dragStartY = e.touches[0].clientY;
   updateCubeTransform();
-}, { passive: true });
+}, { passive: false });
 
 document.addEventListener('touchend', () => { isDragging = false; });
 
@@ -951,6 +991,7 @@ document.getElementById('btn-reset-view').addEventListener('click', () => {
 
 // Initialize
 buildCube();
+resizeCube();
 updateCubeTransform();
 startGame();
 </script>
