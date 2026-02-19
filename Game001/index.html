@@ -813,10 +813,14 @@ document.addEventListener('mousemove', e => {
 document.addEventListener('mouseup', () => { isDragging = false; });
 
 // Touch support（preventDefaultでスクロール・バウンスを防止）
+// タッチ開始位置を記録し、セルタップとドラッグを区別する
+let touchStartTarget = null;
+
 sceneEl.addEventListener('touchstart', e => {
   e.preventDefault();
   isDragging = true;
   dragMoved = false;
+  touchStartTarget = e.target;
   dragStartX = e.touches[0].clientX;
   dragStartY = e.touches[0].clientY;
 }, { passive: false });
@@ -834,7 +838,17 @@ document.addEventListener('touchmove', e => {
   updateCubeTransform();
 }, { passive: false });
 
-document.addEventListener('touchend', () => { isDragging = false; });
+document.addEventListener('touchend', e => {
+  if (isDragging && !dragMoved && touchStartTarget) {
+    // ドラッグしなかった＝タップ → セルのクリックとして処理
+    const cell = touchStartTarget.closest('.cell.clickable');
+    if (cell) {
+      cell.click();
+    }
+  }
+  isDragging = false;
+  touchStartTarget = null;
+});
 
 // -------------------------------------------------------
 // 6. GAME FLOW
