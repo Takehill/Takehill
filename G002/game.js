@@ -944,7 +944,7 @@
                             //   mid   (0.8-2.0): ramps slowly — moderate spin
                             //   strong(2.0+):    kicks up hard — big spin
                             const absVel = Math.abs(vel);
-                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 1.2), 2.0) * 2.5;
+                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 1.6), 2.5) * 2.5;
                             inertiaVelocity = vel * boost;
                             inertiaAccumX = touchAccumX;  // carry over sub-step remainder
                             inertiaActive = true;
