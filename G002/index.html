@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cylinder Tetris 3D</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        #game-container { position: relative; }
+        #canvas-container { border-radius: 10px; overflow: hidden; box-shadow: 0 0 50px rgba(0, 200, 255, 0.3); }
+        #ui-overlay { position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 200, 255, 0.5); }
+        #ui-overlay h2 { font-size: 14px; color: #00c8ff; margin-bottom: 10px; }
+        #ui-overlay p { font-size: 18px; margin: 5px 0; }
+        #next-piece { position: absolute; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 10px; border: 1px solid rgba(0, 200, 255, 0.5); }
+        #next-piece h3 { font-size: 14px; color: #00c8ff; margin-bottom: 10px; text-align: center; }
+        #next-canvas { display: block; margin: 0 auto; }
+        #controls { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); padding: 15px 25px; border-radius: 10px; border: 1px solid rgba(0, 200, 255, 0.5); text-align: center; font-size: 12px; white-space: nowrap; }
+        #controls span { margin: 0 10px; color: #aaa; }
+        #controls kbd { background: #333; padding: 3px 8px; border-radius: 4px; border: 1px solid #555; color: #00c8ff; }
+        #game-over { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.9); padding: 40px; border-radius: 15px; border: 2px solid #ff0055; text-align: center; display: none; z-index: 100; }
+        #game-over h1 { color: #ff0055; font-size: 36px; margin-bottom: 20px; }
+        #game-over p { font-size: 24px; margin-bottom: 20px; }
+        #restart-btn { background: linear-gradient(135deg, #00c8ff, #0088ff); border: none; color: white; padding: 15px 40px; font-size: 18px; border-radius: 8px; cursor: pointer; }
+        #restart-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 200, 255, 0.5); }
+        h1.title { font-size: 32px; margin-bottom: 20px; color: #00c8ff; text-shadow: 0 0 20px rgba(0, 200, 255, 0.5); }
+    </style>
+</head>
+<body>
+    <h1 class="title">Cylinder Tetris 3D</h1>
+    <div id="game-container">
+        <div id="canvas-container"></div>
+        <div id="ui-overlay">
+            <h2>SCORE</h2><p id="score">0</p>
+            <h2>LEVEL</h2><p id="level">1</p>
+            <h2>LINES</h2><p id="lines">0</p>
+        </div>
+        <div id="next-piece"><h3>NEXT</h3><canvas id="next-canvas" width="100" height="100"></canvas></div>
+        <div id="controls">
+            <kbd>←</kbd><kbd>→</kbd> 筒を回転 <span>|</span>
+            <kbd>↓</kbd> 落下加速 <span>|</span>
+            <kbd>↑</kbd><kbd>Z</kbd> ブロック回転 <span>|</span>
+            <kbd>Space</kbd> ハードドロップ
+        </div>
+        <div id="game-over"><h1>GAME OVER</h1><p>Final Score: <span id="final-score">0</span></p><button id="restart-btn">RESTART</button></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
