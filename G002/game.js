@@ -728,19 +728,28 @@
         spawnPiece();
     }
 
-    // Responsive canvas sizing
+    // Responsive canvas sizing - measure actual available space from flex container
     function getCanvasSize() {
-        const maxWidth = 800;
-        const maxHeight = 700;
-        const isMobile = window.innerWidth <= 850;
-        if (!isMobile) {
-            return { width: maxWidth, height: maxHeight };
+        const container = document.getElementById('game-container');
+        if (container) {
+            const rect = container.getBoundingClientRect();
+            const w = Math.floor(rect.width);
+            const h = Math.floor(rect.height);
+            if (w > 0 && h > 0) {
+                // Keep aspect ratio close to 8:7, fit within available space
+                const targetRatio = 800 / 700;
+                let canvasW, canvasH;
+                if (w / h > targetRatio) {
+                    canvasH = h;
+                    canvasW = Math.floor(h * targetRatio);
+                } else {
+                    canvasW = w;
+                    canvasH = Math.floor(w / targetRatio);
+                }
+                return { width: canvasW, height: canvasH };
+            }
         }
-        const w = Math.min(window.innerWidth - 8, maxWidth);
-        // Leave room for title and touch controls
-        const availableHeight = window.innerHeight - 120;
-        const h = Math.min(availableHeight, maxHeight, w * (maxHeight / maxWidth));
-        return { width: Math.floor(w), height: Math.floor(h) };
+        return { width: 800, height: 700 };
     }
 
     function onWindowResize() {
@@ -802,9 +811,13 @@
             const btn = document.getElementById(id);
             if (!btn) return;
             btn.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(); }, { passive: false });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); if (onUp) onUp(); }, { passive: false });
+            btn.addEventListener('touchcancel', (e) => { e.preventDefault(); if (onUp) onUp(); }, { passive: false });
+            // Also support mouse click for desktop testing
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); onDown(); });
             if (onUp) {
-                btn.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); }, { passive: false });
-                btn.addEventListener('touchcancel', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+                btn.addEventListener('mouseup', (e) => { e.preventDefault(); onUp(); });
+                btn.addEventListener('mouseleave', (e) => { onUp(); });
             }
         }
 
@@ -820,17 +833,14 @@
         let touchStartX = 0;
         let touchStartY = 0;
         let touchStartTime = 0;
-        let touchMoved = false;
 
         const canvasEl = document.getElementById('canvas-container');
         canvasEl.addEventListener('touchstart', (e) => {
-            if (gameOver) return;
+            e.preventDefault();
             const t = e.touches[0];
             touchStartX = t.clientX;
             touchStartY = t.clientY;
             touchStartTime = Date.now();
-            touchMoved = false;
-            e.preventDefault();
         }, { passive: false });
 
         canvasEl.addEventListener('touchmove', (e) => {
@@ -838,6 +848,7 @@
         }, { passive: false });
 
         canvasEl.addEventListener('touchend', (e) => {
+            e.preventDefault();
             if (gameOver) {
                 restartGame();
                 return;
@@ -867,7 +878,7 @@
         // Window resize
         window.addEventListener('resize', onWindowResize);
         window.addEventListener('orientationchange', () => {
-            setTimeout(onWindowResize, 100);
+            setTimeout(onWindowResize, 200);
         });
     }
 
