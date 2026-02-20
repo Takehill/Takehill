@@ -56,12 +56,14 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0a0a1a);
 
-        camera = new THREE.PerspectiveCamera(45, 800/700, 0.1, 1000);
+        const canvasSize = getCanvasSize();
+        camera = new THREE.PerspectiveCamera(45, canvasSize.width / canvasSize.height, 0.1, 1000);
         camera.position.set(0, 2, 6);
         camera.lookAt(0, -0.25, 0);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(800, 700);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(canvasSize.width, canvasSize.height);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         // Lighting - enhanced for Phong shading
@@ -726,6 +728,29 @@
         spawnPiece();
     }
 
+    // Responsive canvas sizing
+    function getCanvasSize() {
+        const maxWidth = 800;
+        const maxHeight = 700;
+        const isMobile = window.innerWidth <= 850;
+        if (!isMobile) {
+            return { width: maxWidth, height: maxHeight };
+        }
+        const w = Math.min(window.innerWidth - 8, maxWidth);
+        // Leave room for title and touch controls
+        const availableHeight = window.innerHeight - 120;
+        const h = Math.min(availableHeight, maxHeight, w * (maxHeight / maxWidth));
+        return { width: Math.floor(w), height: Math.floor(h) };
+    }
+
+    function onWindowResize() {
+        if (!camera || !renderer) return;
+        const size = getCanvasSize();
+        camera.aspect = size.width / size.height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(size.width, size.height);
+    }
+
     function setupInput() {
         document.addEventListener('keydown', (e) => {
             if (gameOver) {
@@ -771,6 +796,79 @@
         });
 
         document.getElementById('restart-btn').addEventListener('click', restartGame);
+
+        // Touch button controls
+        function addTouchBtn(id, onDown, onUp) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); onDown(); }, { passive: false });
+            if (onUp) {
+                btn.addEventListener('touchend', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+                btn.addEventListener('touchcancel', (e) => { e.preventDefault(); onUp(); }, { passive: false });
+            }
+        }
+
+        addTouchBtn('btn-left', () => { if (!gameOver) rotateCylinder(-1); });
+        addTouchBtn('btn-right', () => { if (!gameOver) rotateCylinder(1); });
+        addTouchBtn('btn-rotate', () => { if (!gameOver) rotatePiece(true); });
+        addTouchBtn('btn-down', () => { if (!gameOver) softDrop = true; }, () => { softDrop = false; });
+        addTouchBtn('btn-drop', () => {
+            if (gameOver) { restartGame(); } else { hardDrop(); }
+        });
+
+        // Swipe gesture on canvas
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        let touchMoved = false;
+
+        const canvasEl = document.getElementById('canvas-container');
+        canvasEl.addEventListener('touchstart', (e) => {
+            if (gameOver) return;
+            const t = e.touches[0];
+            touchStartX = t.clientX;
+            touchStartY = t.clientY;
+            touchStartTime = Date.now();
+            touchMoved = false;
+            e.preventDefault();
+        }, { passive: false });
+
+        canvasEl.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        canvasEl.addEventListener('touchend', (e) => {
+            if (gameOver) {
+                restartGame();
+                return;
+            }
+            const t = e.changedTouches[0];
+            const dx = t.clientX - touchStartX;
+            const dy = t.clientY - touchStartY;
+            const dt = Date.now() - touchStartTime;
+            const absDx = Math.abs(dx);
+            const absDy = Math.abs(dy);
+            const threshold = 30;
+
+            if (absDx < threshold && absDy < threshold && dt < 300) {
+                // Tap = rotate piece
+                rotatePiece(true);
+            } else if (absDy > absDx && dy > threshold) {
+                // Swipe down = hard drop
+                if (dy > 80) {
+                    hardDrop();
+                }
+            } else if (absDx > absDy && absDx > threshold) {
+                // Horizontal swipe = rotate cylinder
+                rotateCylinder(dx > 0 ? 1 : -1);
+            }
+        }, { passive: false });
+
+        // Window resize
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(onWindowResize, 100);
+        });
     }
 
     function animate(currentTime) {
