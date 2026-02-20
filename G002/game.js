@@ -44,7 +44,7 @@
     const colSwipeWidth = 28;            // pixels per column rotation step
     const INERTIA_FRICTION = 0.94;       // per-frame decay
     const INERTIA_MIN = 0.3;            // stop threshold (px/ms)
-    const INERTIA_BOOST = 1.8;          // release velocity multiplier
+    const INERTIA_BOOST = 1.2;          // release velocity multiplier
     let inertiaVelocity = 0;
     let inertiaAccumX = 0;
     let inertiaActive = false;
@@ -944,7 +944,7 @@
                             //   mid   (0.8-2.0): ramps slowly — moderate spin
                             //   strong(2.0+):    kicks up hard — big spin
                             const absVel = Math.abs(vel);
-                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 1.6), 2.5) * 2.5;
+                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 1.6), 2.5) * 1.2;
                             inertiaVelocity = vel * boost;
                             inertiaAccumX = touchAccumX;  // carry over sub-step remainder
                             inertiaActive = true;
