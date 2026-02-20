@@ -40,6 +40,15 @@
     let dropInterval = 300;
     let softDrop = false;
 
+    // Swipe inertia state (shared between setupInput and animate)
+    const colSwipeWidth = 28;            // pixels per column rotation step
+    const INERTIA_FRICTION = 0.94;       // per-frame decay
+    const INERTIA_MIN = 0.3;            // stop threshold (px/ms)
+    const INERTIA_BOOST = 1.8;          // release velocity multiplier
+    let inertiaVelocity = 0;
+    let inertiaAccumX = 0;
+    let inertiaActive = false;
+
     // Initialize grid (row 0 = bottom, row VISIBLE_ROWS-1 = top)
     function initGrid() {
         grid = [];
@@ -830,14 +839,17 @@
             if (gameOver) { restartGame(); } else { hardDrop(); }
         });
 
-        // Swipe gesture on canvas - continuous rotation during drag
+        // Swipe gesture on canvas - continuous rotation with inertia
         let touchStartX = 0;
         let touchStartY = 0;
         let touchStartTime = 0;
         let touchLastX = 0;
-        let touchAccumX = 0;  // Accumulated horizontal movement for column-snap rotation
-        let touchDragging = false;  // True once drag threshold exceeded
-        const colSwipeWidth = 28;  // Pixels per column rotation step
+        let touchAccumX = 0;
+        let touchDragging = false;
+
+        // Velocity tracking - keep recent samples for accurate flick detection
+        let touchVelocitySamples = [];
+        const VELOCITY_WINDOW = 80;      // ms - only use recent samples
 
         const canvasEl = document.getElementById('canvas-container');
         canvasEl.addEventListener('touchstart', (e) => {
@@ -849,25 +861,38 @@
             touchStartTime = Date.now();
             touchAccumX = 0;
             touchDragging = false;
+            touchVelocitySamples = [];
+
+            // Cancel any ongoing inertia when finger touches
+            inertiaActive = false;
+            inertiaVelocity = 0;
+            inertiaAccumX = 0;
         }, { passive: false });
 
         canvasEl.addEventListener('touchmove', (e) => {
             e.preventDefault();
             if (gameOver) return;
             const t = e.touches[0];
+            const now = Date.now();
             const dx = t.clientX - touchStartX;
             const dy = t.clientY - touchStartY;
 
-            // Once horizontal drag exceeds threshold, enter drag mode
+            // Record velocity sample
+            touchVelocitySamples.push({ x: t.clientX, time: now });
+            // Trim old samples
+            while (touchVelocitySamples.length > 0 &&
+                   now - touchVelocitySamples[0].time > VELOCITY_WINDOW) {
+                touchVelocitySamples.shift();
+            }
+
+            // Enter drag mode once horizontal movement exceeds threshold
             if (!touchDragging && Math.abs(dx) > 15 && Math.abs(dx) > Math.abs(dy)) {
                 touchDragging = true;
             }
 
             if (touchDragging) {
-                // Accumulate horizontal movement since last consumed step
                 touchAccumX += t.clientX - touchLastX;
 
-                // For every colSwipeWidth pixels moved, rotate one column
                 while (touchAccumX >= colSwipeWidth) {
                     rotateCylinder(1);
                     touchAccumX -= colSwipeWidth;
@@ -889,7 +914,7 @@
             }
 
             if (!touchDragging) {
-                // Was not a drag - check for tap or vertical swipe
+                // Not a drag - check for tap or vertical swipe
                 const t = e.changedTouches[0];
                 const dx = t.clientX - touchStartX;
                 const dy = t.clientY - touchStartY;
@@ -898,16 +923,33 @@
                 const absDy = Math.abs(dy);
 
                 if (absDx < 20 && absDy < 20 && dt < 300) {
-                    // Tap = rotate piece
                     rotatePiece(true);
                 } else if (absDy > absDx && dy > 60) {
-                    // Swipe down = hard drop
                     hardDrop();
+                }
+            } else {
+                // Was dragging - calculate release velocity for inertia
+                const now = Date.now();
+                // Filter to very recent samples only
+                const recent = touchVelocitySamples.filter(s => now - s.time < VELOCITY_WINDOW);
+                if (recent.length >= 2) {
+                    const first = recent[0];
+                    const last = recent[recent.length - 1];
+                    const dt = last.time - first.time;
+                    if (dt > 0) {
+                        const vel = (last.x - first.x) / dt;  // px/ms
+                        if (Math.abs(vel) > 0.3) {
+                            inertiaVelocity = vel * INERTIA_BOOST;
+                            inertiaAccumX = touchAccumX;  // carry over sub-step remainder
+                            inertiaActive = true;
+                        }
+                    }
                 }
             }
 
             touchDragging = false;
             touchAccumX = 0;
+            touchVelocitySamples = [];
         }, { passive: false });
 
         // Window resize
@@ -917,8 +959,40 @@
         });
     }
 
+    let lastAnimateTime = 0;
+
     function animate(currentTime) {
         requestAnimationFrame(animate);
+
+        const frameDt = lastAnimateTime ? (currentTime - lastAnimateTime) : 16;
+        lastAnimateTime = currentTime;
+
+        // Process inertia - apply virtual px movement and snap to columns
+        if (inertiaActive && !gameOver && currentPiece) {
+            // Convert velocity (px/ms) to px this frame
+            const pxThisFrame = inertiaVelocity * frameDt;
+            inertiaAccumX += pxThisFrame;
+
+            // Snap to columns
+            while (inertiaAccumX >= colSwipeWidth) {
+                rotateCylinder(1);
+                inertiaAccumX -= colSwipeWidth;
+            }
+            while (inertiaAccumX <= -colSwipeWidth) {
+                rotateCylinder(-1);
+                inertiaAccumX += colSwipeWidth;
+            }
+
+            // Decay velocity
+            inertiaVelocity *= INERTIA_FRICTION;
+
+            // Stop when slow enough
+            if (Math.abs(inertiaVelocity) < INERTIA_MIN / 16) {
+                inertiaActive = false;
+                inertiaVelocity = 0;
+                inertiaAccumX = 0;
+            }
+        }
 
         const rotationDiff = targetCylinderRotation - cylinderRotation;
         cylinderRotation += rotationDiff * 0.25;
