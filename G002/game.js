@@ -939,7 +939,11 @@
                     if (dt > 0) {
                         const vel = (last.x - first.x) / dt;  // px/ms
                         if (Math.abs(vel) > 0.3) {
-                            inertiaVelocity = vel * INERTIA_BOOST;
+                            // Non-linear boost: gentle swipes stay mild, strong flicks spin hard
+                            // absVel ~0.3-0.8 = gentle, ~0.8-2.0 = medium, 2.0+ = strong flick
+                            const absVel = Math.abs(vel);
+                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 0.8), 1.3) * 3.0;
+                            inertiaVelocity = vel * boost;
                             inertiaAccumX = touchAccumX;  // carry over sub-step remainder
                             inertiaActive = true;
                         }
@@ -983,8 +987,10 @@
                 inertiaAccumX += colSwipeWidth;
             }
 
-            // Decay velocity
-            inertiaVelocity *= INERTIA_FRICTION;
+            // Decay velocity - faster spins have less friction for longer coast
+            const absV = Math.abs(inertiaVelocity);
+            const friction = absV > 1.5 ? 0.97 : INERTIA_FRICTION;
+            inertiaVelocity *= friction;
 
             // Stop when slow enough
             if (Math.abs(inertiaVelocity) < INERTIA_MIN / 16) {
