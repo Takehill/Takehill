@@ -736,8 +736,9 @@
             const w = Math.floor(rect.width);
             const h = Math.floor(rect.height);
             if (w > 0 && h > 0) {
-                // Keep aspect ratio close to 8:7, fit within available space
-                const targetRatio = 800 / 700;
+                // Desktop: wider aspect ratio (8:7), Mobile: taller (3:4)
+                const isMobile = window.innerWidth <= 850 || ('ontouchstart' in window);
+                const targetRatio = isMobile ? (3 / 4) : (800 / 700);
                 let canvasW, canvasH;
                 if (w / h > targetRatio) {
                     canvasH = h;
@@ -829,10 +830,14 @@
             if (gameOver) { restartGame(); } else { hardDrop(); }
         });
 
-        // Swipe gesture on canvas
+        // Swipe gesture on canvas - continuous rotation during drag
         let touchStartX = 0;
         let touchStartY = 0;
         let touchStartTime = 0;
+        let touchLastX = 0;
+        let touchAccumX = 0;  // Accumulated horizontal movement for column-snap rotation
+        let touchDragging = false;  // True once drag threshold exceeded
+        const colSwipeWidth = 28;  // Pixels per column rotation step
 
         const canvasEl = document.getElementById('canvas-container');
         canvasEl.addEventListener('touchstart', (e) => {
@@ -840,11 +845,40 @@
             const t = e.touches[0];
             touchStartX = t.clientX;
             touchStartY = t.clientY;
+            touchLastX = t.clientX;
             touchStartTime = Date.now();
+            touchAccumX = 0;
+            touchDragging = false;
         }, { passive: false });
 
         canvasEl.addEventListener('touchmove', (e) => {
             e.preventDefault();
+            if (gameOver) return;
+            const t = e.touches[0];
+            const dx = t.clientX - touchStartX;
+            const dy = t.clientY - touchStartY;
+
+            // Once horizontal drag exceeds threshold, enter drag mode
+            if (!touchDragging && Math.abs(dx) > 15 && Math.abs(dx) > Math.abs(dy)) {
+                touchDragging = true;
+            }
+
+            if (touchDragging) {
+                // Accumulate horizontal movement since last consumed step
+                touchAccumX += t.clientX - touchLastX;
+
+                // For every colSwipeWidth pixels moved, rotate one column
+                while (touchAccumX >= colSwipeWidth) {
+                    rotateCylinder(1);
+                    touchAccumX -= colSwipeWidth;
+                }
+                while (touchAccumX <= -colSwipeWidth) {
+                    rotateCylinder(-1);
+                    touchAccumX += colSwipeWidth;
+                }
+            }
+
+            touchLastX = t.clientX;
         }, { passive: false });
 
         canvasEl.addEventListener('touchend', (e) => {
@@ -853,26 +887,27 @@
                 restartGame();
                 return;
             }
-            const t = e.changedTouches[0];
-            const dx = t.clientX - touchStartX;
-            const dy = t.clientY - touchStartY;
-            const dt = Date.now() - touchStartTime;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-            const threshold = 30;
 
-            if (absDx < threshold && absDy < threshold && dt < 300) {
-                // Tap = rotate piece
-                rotatePiece(true);
-            } else if (absDy > absDx && dy > threshold) {
-                // Swipe down = hard drop
-                if (dy > 80) {
+            if (!touchDragging) {
+                // Was not a drag - check for tap or vertical swipe
+                const t = e.changedTouches[0];
+                const dx = t.clientX - touchStartX;
+                const dy = t.clientY - touchStartY;
+                const dt = Date.now() - touchStartTime;
+                const absDx = Math.abs(dx);
+                const absDy = Math.abs(dy);
+
+                if (absDx < 20 && absDy < 20 && dt < 300) {
+                    // Tap = rotate piece
+                    rotatePiece(true);
+                } else if (absDy > absDx && dy > 60) {
+                    // Swipe down = hard drop
                     hardDrop();
                 }
-            } else if (absDx > absDy && absDx > threshold) {
-                // Horizontal swipe = rotate cylinder
-                rotateCylinder(dx > 0 ? 1 : -1);
             }
+
+            touchDragging = false;
+            touchAccumX = 0;
         }, { passive: false });
 
         // Window resize
@@ -886,7 +921,7 @@
         requestAnimationFrame(animate);
 
         const rotationDiff = targetCylinderRotation - cylinderRotation;
-        cylinderRotation += rotationDiff * 0.12;
+        cylinderRotation += rotationDiff * 0.25;
         cylinderGroup.rotation.y = cylinderRotation;
 
         // blocksGroup rotates opposite to cylinderGroup to keep falling blocks at screen front
