@@ -42,9 +42,7 @@
 
     // Swipe inertia state (shared between setupInput and animate)
     const colSwipeWidth = 28;            // pixels per column rotation step
-    const INERTIA_FRICTION = 0.94;       // per-frame decay
-    const INERTIA_MIN = 0.3;            // stop threshold (px/ms)
-    const INERTIA_BOOST = 1.2;          // release velocity multiplier
+    const INERTIA_FRICTION = 0.92;       // per-frame decay (~0.6% per frame at 60fps → stops in ~0.8s)
     let inertiaVelocity = 0;
     let inertiaAccumX = 0;
     let inertiaActive = false;
@@ -939,13 +937,10 @@
                     if (dt > 0) {
                         const vel = (last.x - first.x) / dt;  // px/ms
                         if (Math.abs(vel) > 0.3) {
-                            // Non-linear boost curve:
-                            //   weak  (0.3-0.8): base 1.8x only — gentle spin
-                            //   mid   (0.8-2.0): ramps slowly — moderate spin
-                            //   strong(2.0+):    kicks up hard — big spin
-                            const absVel = Math.abs(vel);
-                            const boost = INERTIA_BOOST + Math.pow(Math.max(0, absVel - 1.6), 2.5) * 1.2;
-                            inertiaVelocity = vel * boost;
+                            // Clamp velocity to cap maximum spin
+                            const maxVel = 4.0;
+                            const clampedVel = Math.max(-maxVel, Math.min(maxVel, vel));
+                            inertiaVelocity = clampedVel;
                             inertiaAccumX = touchAccumX;  // carry over sub-step remainder
                             inertiaActive = true;
                         }
@@ -989,13 +984,11 @@
                 inertiaAccumX += colSwipeWidth;
             }
 
-            // Decay velocity - faster spins have less friction for longer coast
-            const absV = Math.abs(inertiaVelocity);
-            const friction = absV > 1.5 ? 0.97 : INERTIA_FRICTION;
-            inertiaVelocity *= friction;
+            // Decay velocity uniformly
+            inertiaVelocity *= INERTIA_FRICTION;
 
             // Stop when slow enough
-            if (Math.abs(inertiaVelocity) < INERTIA_MIN / 16) {
+            if (Math.abs(inertiaVelocity) < 0.01) {
                 inertiaActive = false;
                 inertiaVelocity = 0;
                 inertiaAccumX = 0;
