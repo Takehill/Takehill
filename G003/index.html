@@ -25,9 +25,6 @@ body{
   overflow:hidden;
 }
 
-h1{font-size:clamp(18px,4.5vw,26px);color:#d4a76a;flex-shrink:0;margin-top:4px}
-#status{font-size:clamp(13px,3.5vw,17px);min-height:clamp(20px,4vw,26px);color:#ffd700;flex-shrink:0;margin:2px 0}
-
 /* ── Layout: PC=row, Mobile=column ── */
 #game-container{
   display:flex;flex-direction:row;gap:clamp(8px,1.5vw,20px);
@@ -37,6 +34,9 @@ h1{font-size:clamp(18px,4.5vw,26px);color:#d4a76a;flex-shrink:0;margin-top:4px}
   padding:0 4px;
 }
 #board-section{text-align:center;flex-shrink:0}
+#side-panel{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1vw,12px);flex-shrink:0}
+#info-panel{text-align:center}
+#status{font-size:clamp(13px,3.5vw,17px);min-height:clamp(20px,4vw,26px);color:#ffd700;margin:2px 0}
 
 /* ── Board: CSS変数でサイズ制御 ── */
 :root{--cs:62px;--bs-font2:22px;--bs-font3:16px;--bs-font1:26px;--bg-w:52px;--bg-h:54px;--dot-sz:16px;--ref-cs:30px;--ref-font:13px}
@@ -147,8 +147,8 @@ button:hover{background:#a0522d}
 .ref-fwd{font-size:clamp(9px,2vw,11px);color:#777;margin-bottom:1px}
 .ref-board{
   display:grid;
-  grid-template-columns:repeat(9,var(--ref-cs));
-  grid-template-rows:repeat(9,var(--ref-cs));
+  grid-template-columns:repeat(5,var(--ref-cs));
+  grid-template-rows:repeat(5,var(--ref-cs));
   border:2px solid #5a4020;background:#2a1a0a;margin:0 auto;width:fit-content
 }
 .ref-cell{
@@ -169,20 +169,20 @@ button:hover{background:#a0522d}
 .ref-leg-box.lg-slide{background:rgba(220,200,0,.45)}
 .ref-leg-box.lg-knight{background:rgba(0,180,80,.6)}
 
-/* ── Mobile: ボードの下にリファレンスパネル ── */
+/* ── Mobile: ボードの下にref+infoが横並び ── */
 @media(max-width:850px){
   #game-container{
     flex-direction:column;align-items:center;
     overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
-  #ref-panel{width:auto;min-width:0;max-width:100%}
+  #side-panel{flex-direction:row;align-items:flex-start;width:100%;justify-content:center}
+  #ref-panel{width:auto;min-width:0;max-width:none}
+  #info-panel{padding-top:4px}
 }
 </style>
 </head>
 <body>
 <div id="app">
-  <h1>三國志将棋</h1>
-  <div id="status"></div>
   <div id="game-container">
     <div id="board-section">
       <div class="hand-area" id="wei-hand"><span class="hand-label">【魏 持駒】</span></div>
@@ -192,10 +192,15 @@ button:hover{background:#a0522d}
         <div class="row-labels" id="row-labels"></div>
       </div>
       <div class="hand-area" id="shu-hand"><span class="hand-label">【蜀 持駒】</span></div>
-      <button onclick="initGame()">新規対局</button>
     </div>
-    <div id="ref-panel">
-      <div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>
+    <div id="side-panel">
+      <div id="ref-panel">
+        <div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>
+      </div>
+      <div id="info-panel">
+        <div id="status"></div>
+        <button onclick="initGame()">新規対局</button>
+      </div>
     </div>
   </div>
 </div>
@@ -501,24 +506,25 @@ function aiTurn(){
 // ═══════════════════════════════════════════
 
 function genMovePattern(type) {
-  const g = Array.from({length:9}, () => Array(9).fill(0));
-  g[4][4] = 4;
+  const S=5, C=2;
+  const g = Array.from({length:S}, () => Array(S).fill(0));
+  g[C][C] = 4;
   const f = -1;
   const piece = PT[type];
 
   function markStep(dr,dc) {
-    const r=4+dr,c=4+dc;
-    if(r>=0&&r<9&&c>=0&&c<9&&g[r][c]!==4) g[r][c]=1;
+    const r=C+dr,c=C+dc;
+    if(r>=0&&r<S&&c>=0&&c<S&&g[r][c]!==4) g[r][c]=1;
   }
   function markSlide(dr,dc) {
-    for(let i=1;i<9;i++){const r=4+dr*i,c=4+dc*i;
-      if(r<0||r>=9||c<0||c>=9)break;
+    for(let i=1;i<S;i++){const r=C+dr*i,c=C+dc*i;
+      if(r<0||r>=S||c<0||c>=S)break;
       if(g[r][c]===0) g[r][c]=2;
     }
   }
   function markKnight(dr,dc) {
-    const r=4+dr,c=4+dc;
-    if(r>=0&&r<9&&c>=0&&c<9&&g[r][c]===0) g[r][c]=3;
+    const r=C+dr,c=C+dc;
+    if(r>=0&&r<S&&c>=0&&c<S&&g[r][c]===0) g[r][c]=3;
   }
 
   for (const mt of piece.m) {
@@ -570,8 +576,8 @@ function renderMoveRef() {
   h += '<div class="ref-fwd">▲ 前方</div>';
 
   h += '<div class="ref-board">';
-  for (let r = 0; r < 9; r++) {
-    for (let c = 0; c < 9; c++) {
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
       let cls = 'ref-cell';
       let content = '';
       switch(grid[r][c]) {
