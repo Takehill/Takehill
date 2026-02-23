@@ -2,80 +2,181 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>三國志将棋 - 蜀 vs 魏</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;background:#1a0e08;color:#f0d9b5;display:flex;justify-content:center;padding:15px}
-#app{text-align:center}
-h1{margin-bottom:8px;font-size:26px;color:#d4a76a}
-#status{margin:8px 0;font-size:17px;min-height:26px;color:#ffd700}
 
-/* ── Layout: board + reference panel ── */
-#game-container{display:flex;flex-direction:row;gap:20px;align-items:flex-start;justify-content:center}
-#board-section{text-align:center}
-@media(max-width:850px){
-  #game-container{flex-direction:column;align-items:center}
+html,body{
+  width:100%;height:100%;height:100dvh;
+  overflow:hidden;touch-action:none;
+}
+body{
+  font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
+  background:#1a0e08;color:#f0d9b5;
+  display:flex;flex-direction:column;align-items:center;
+  user-select:none;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-.hand-area{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;min-height:44px;margin:4px 0;background:#0d0704;border:1px solid #3a2a1a;border-radius:5px;padding:4px 10px;gap:4px}
-.hand-label{margin-right:8px;font-size:13px;color:#999}
-.hand-piece{padding:3px 7px;border:2px solid #555;border-radius:4px;cursor:pointer;font-size:15px;font-weight:bold;transition:all .15s}
+#app{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;
+  overflow:hidden;
+}
+
+h1{font-size:clamp(18px,4.5vw,26px);color:#d4a76a;flex-shrink:0;margin-top:4px}
+#status{font-size:clamp(13px,3.5vw,17px);min-height:clamp(20px,4vw,26px);color:#ffd700;flex-shrink:0;margin:2px 0}
+
+/* ── Layout: PC=row, Mobile=column ── */
+#game-container{
+  display:flex;flex-direction:row;gap:clamp(8px,1.5vw,20px);
+  align-items:flex-start;justify-content:center;
+  flex:1 1 auto;min-height:0;
+  width:100%;overflow:hidden;
+  padding:0 4px;
+}
+#board-section{text-align:center;flex-shrink:0}
+
+/* ── Board: CSS変数でサイズ制御 ── */
+:root{--cs:62px;--bs-font2:22px;--bs-font3:16px;--bs-font1:26px;--bg-w:52px;--bg-h:54px;--dot-sz:16px;--ref-cs:30px;--ref-font:13px}
+
+.hand-area{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+  min-height:clamp(32px,6vw,44px);margin:2px 0;
+  background:#0d0704;border:1px solid #3a2a1a;border-radius:5px;
+  padding:2px clamp(4px,1.5vw,10px);gap:clamp(2px,0.8vw,4px)
+}
+.hand-label{margin-right:clamp(4px,1vw,8px);font-size:clamp(10px,2.5vw,13px);color:#999}
+.hand-piece{
+  padding:clamp(2px,0.5vw,3px) clamp(4px,1vw,7px);
+  border:2px solid #555;border-radius:4px;cursor:pointer;
+  font-size:clamp(11px,3vw,15px);font-weight:bold;transition:all .15s
+}
 .hand-piece.shu{background:#3a1515;color:#ff6b6b}
 .hand-piece.wei{background:#15253a;color:#6b9bff}
 .hand-piece:hover{border-color:#ffd700}
 .hand-piece.selected{border-color:#ffd700;box-shadow:0 0 8px #ffd700}
-.hand-piece .count{font-size:11px;color:#ccc;margin-left:2px}
-#board{display:grid;grid-template-columns:repeat(9,62px);grid-template-rows:repeat(9,62px);border:3px solid #8b4513;background:#d4a76a;margin:0 auto}
-.col-labels{display:flex;justify-content:center;margin-bottom:2px}
-.col-label{width:62px;text-align:center;font-size:13px;color:#8b7355}
+.hand-piece .count{font-size:clamp(9px,2vw,11px);color:#ccc;margin-left:2px}
+
+#board{
+  display:grid;
+  grid-template-columns:repeat(9,var(--cs));
+  grid-template-rows:repeat(9,var(--cs));
+  border:3px solid #8b4513;background:#d4a76a;margin:0 auto
+}
+.col-labels{display:flex;justify-content:center;margin-bottom:1px}
+.col-label{width:var(--cs);text-align:center;font-size:clamp(10px,2.5vw,13px);color:#8b7355}
 .board-row-wrap{display:flex;justify-content:center;align-items:stretch}
 .row-labels{display:flex;flex-direction:column}
-.row-label{height:62px;display:flex;align-items:center;padding-left:4px;font-size:13px;color:#8b7355}
-.cell{width:62px;height:62px;border:1px solid #8b7355;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;user-select:none;transition:background .1s}
+.row-label{height:var(--cs);display:flex;align-items:center;padding-left:2px;font-size:clamp(10px,2.5vw,13px);color:#8b7355}
+
+.cell{
+  width:var(--cs);height:var(--cs);
+  border:1px solid #8b7355;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;user-select:none;transition:background .1s;
+  -webkit-tap-highlight-color:transparent;
+}
 .cell:hover{background:rgba(255,255,0,.15)}
 .cell.selected{background:rgba(255,215,0,.45)!important}
 .cell.last-from{background:rgba(100,149,237,.25)}
 .cell.last-to{background:rgba(100,149,237,.35)}
 .cell.valid-target{background:rgba(0,180,0,.25)}
 .cell.valid-target.has-enemy{background:rgba(200,0,0,.25)}
-.cell .dot{position:absolute;width:16px;height:16px;background:rgba(0,140,0,.5);border-radius:50%;pointer-events:none}
-.piece-text{font-weight:bold;text-align:center;pointer-events:none;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-2px;line-height:1}
+.cell .dot{position:absolute;width:var(--dot-sz);height:var(--dot-sz);background:rgba(0,140,0,.5);border-radius:50%;pointer-events:none}
+
+.piece-text{
+  font-weight:bold;text-align:center;pointer-events:none;
+  writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-2px;line-height:1
+}
 .piece-text.shu-p{color:#b01030}
 .piece-text.wei-p{color:#1040a0;transform:rotate(180deg)}
-.piece-text.sz2{font-size:22px}
-.piece-text.sz3{font-size:16px}
-.piece-text.sz1{font-size:26px}
-.piece-bg{position:absolute;width:52px;height:54px;clip-path:polygon(50% 2%,95% 18%,95% 98%,5% 98%,5% 18%);pointer-events:none}
+.piece-text.sz2{font-size:var(--bs-font2)}
+.piece-text.sz3{font-size:var(--bs-font3)}
+.piece-text.sz1{font-size:var(--bs-font1)}
+.piece-text.promoted{color:#c04010!important}
+
+.piece-bg{
+  position:absolute;width:var(--bg-w);height:var(--bg-h);
+  clip-path:polygon(50% 2%,95% 18%,95% 98%,5% 98%,5% 18%);pointer-events:none
+}
 .piece-bg.shu-bg{background:rgba(255,220,180,.85)}
 .piece-bg.wei-bg{background:rgba(180,210,255,.85);transform:rotate(180deg)}
-button{margin-top:12px;padding:8px 28px;font-size:15px;background:#8b4513;color:#f0d9b5;border:2px solid #d4a76a;border-radius:5px;cursor:pointer;font-family:inherit}
+
+button{
+  margin-top:clamp(4px,1vw,12px);padding:clamp(5px,1.5vw,8px) clamp(16px,4vw,28px);
+  font-size:clamp(12px,3vw,15px);background:#8b4513;color:#f0d9b5;
+  border:2px solid #d4a76a;border-radius:5px;cursor:pointer;font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
 button:hover{background:#a0522d}
 
+/* ── Promotion Dialog ── */
+#promo-overlay{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,.55);z-index:100;
+  align-items:center;justify-content:center;
+}
+.promo-dialog{
+  background:#2a1a0a;border:3px solid #d4a76a;border-radius:12px;
+  padding:clamp(16px,4vw,24px) clamp(20px,5vw,36px);text-align:center;
+}
+.promo-dialog p{font-size:clamp(16px,4vw,22px);color:#f0d9b5;margin-bottom:clamp(12px,3vw,20px)}
+.promo-btn{
+  margin:0 clamp(4px,1.5vw,10px);padding:clamp(8px,2vw,12px) clamp(16px,4vw,28px);
+  font-size:clamp(14px,3.5vw,18px);background:#8b4513;color:#f0d9b5;
+  border:2px solid #d4a76a;border-radius:8px;cursor:pointer;font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+}
+.promo-btn:hover{background:#a0522d}
+
 /* ── Reference Panel ── */
-#ref-panel{min-width:290px;background:#0d0704;border:1px solid #3a2a1a;border-radius:8px;padding:12px;text-align:center}
-.ref-empty{color:#555;font-size:14px;padding:40px 10px;line-height:1.8}
-.ref-title{margin-bottom:6px}
-.ref-name{font-size:22px;font-weight:bold}
+#ref-panel{
+  min-width:0;width:clamp(220px,28vw,310px);
+  background:#0d0704;border:1px solid #3a2a1a;border-radius:8px;
+  padding:clamp(6px,1vw,12px);text-align:center;
+  flex-shrink:0;overflow:hidden;
+}
+.ref-empty{color:#555;font-size:clamp(11px,2.5vw,14px);padding:clamp(15px,3vw,40px) 6px;line-height:1.8}
+.ref-title{margin-bottom:4px}
+.ref-name{font-size:clamp(16px,3.5vw,22px);font-weight:bold}
 .ref-name.shu-p{color:#e03050}
 .ref-name.wei-p{color:#4080e0}
-.ref-king-badge{display:inline-block;font-size:11px;color:#ffd700;border:1px solid #ffd700;border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:middle}
-.ref-desc{font-size:13px;color:#aaa;margin-bottom:8px;line-height:1.5}
-.ref-fwd{font-size:11px;color:#777;margin-bottom:2px}
-.ref-board{display:grid;grid-template-columns:repeat(9,30px);grid-template-rows:repeat(9,30px);border:2px solid #5a4020;background:#2a1a0a;margin:0 auto;width:fit-content}
-.ref-cell{width:30px;height:30px;border:1px solid rgba(90,64,32,.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:transparent}
-.ref-cell.ref-center{color:#fff;font-size:13px;z-index:1}
+.ref-king-badge{display:inline-block;font-size:clamp(9px,2vw,11px);color:#ffd700;border:1px solid #ffd700;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle}
+.ref-desc{font-size:clamp(10px,2.2vw,13px);color:#aaa;margin-bottom:4px;line-height:1.4}
+.ref-fwd{font-size:clamp(9px,2vw,11px);color:#777;margin-bottom:1px}
+.ref-board{
+  display:grid;
+  grid-template-columns:repeat(9,var(--ref-cs));
+  grid-template-rows:repeat(9,var(--ref-cs));
+  border:2px solid #5a4020;background:#2a1a0a;margin:0 auto;width:fit-content
+}
+.ref-cell{
+  width:var(--ref-cs);height:var(--ref-cs);
+  border:1px solid rgba(90,64,32,.4);display:flex;align-items:center;justify-content:center;
+  font-size:clamp(8px,1.8vw,10px);font-weight:bold;color:transparent
+}
+.ref-cell.ref-center{color:#fff;font-size:var(--ref-font);z-index:1}
 .ref-center.ref-shu{background:rgba(180,16,48,.85)}
 .ref-center.ref-wei{background:rgba(16,64,160,.85)}
 .ref-cell.ref-step{background:rgba(230,140,0,.7)}
 .ref-cell.ref-slide{background:rgba(220,200,0,.45)}
 .ref-cell.ref-knight{background:rgba(0,180,80,.6)}
-.ref-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;font-size:12px;color:#aaa}
-.ref-leg-item{display:flex;align-items:center;gap:3px}
-.ref-leg-box{width:14px;height:14px;border-radius:2px;display:inline-block}
+.ref-legend{display:flex;flex-wrap:wrap;gap:clamp(4px,1vw,8px);justify-content:center;margin-top:clamp(4px,1vw,10px);font-size:clamp(10px,2.2vw,12px);color:#aaa}
+.ref-leg-item{display:flex;align-items:center;gap:2px}
+.ref-leg-box{width:clamp(10px,2.5vw,14px);height:clamp(10px,2.5vw,14px);border-radius:2px;display:inline-block}
 .ref-leg-box.lg-step{background:rgba(230,140,0,.7)}
 .ref-leg-box.lg-slide{background:rgba(220,200,0,.45)}
 .ref-leg-box.lg-knight{background:rgba(0,180,80,.6)}
+
+/* ── Mobile: ボードの下にリファレンスパネル ── */
+@media(max-width:850px){
+  #game-container{
+    flex-direction:column;align-items:center;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+  }
+  #ref-panel{width:auto;min-width:0;max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -96,6 +197,13 @@ button:hover{background:#a0522d}
     <div id="ref-panel">
       <div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>
     </div>
+  </div>
+</div>
+<div id="promo-overlay">
+  <div class="promo-dialog">
+    <p>成りますか？</p>
+    <button class="promo-btn" onclick="resolvePromo(true)">成る</button>
+    <button class="promo-btn" onclick="resolvePromo(false)">不成</button>
   </div>
 </div>
 <script>
@@ -126,7 +234,16 @@ const PT = {
   kyocho:  {n:'許褚', m:['rook'],                  k:false, v:800},
   jokou:   {n:'徐晃', m:['rook'],                  k:false, v:800},
   fu:      {n:'歩',   m:['pawn'],                  k:false, v:100},
+  fu_p:    {n:'と金', m:['gold'],                  k:false, v:400},
 };
+
+// Promotion mappings
+const PROMOTE_MAP = {fu:'fu_p'};
+const DEMOTE_MAP = {fu_p:'fu'};
+function canPromote(type){return type in PROMOTE_MAP;}
+function inPromoZone(row,owner){return owner===SHU?row<=2:row>=6;}
+function mustPromote(type,row,owner){if(type==='fu')return owner===SHU?row===0:row===8;return false;}
+function baseType(type){return DEMOTE_MAP[type]||type;}
 
 // Movement type descriptions
 const MOVE_DESC = {
@@ -139,7 +256,47 @@ const MOVE_DESC = {
 
 // ─── Game State ───
 let board, hands, turn, selCell, selHand, targets, gameOver, winner, lastFrom, lastTo;
-let refType = null, refOwner = null; // reference panel state
+let refType = null, refOwner = null;
+let pendingPromo = null;
+
+// ─── Responsive Sizing ───
+function resizeBoard() {
+  const isMobile = window.innerWidth <= 850;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const r = document.documentElement;
+
+  if (isMobile) {
+    // Mobile: board must fit width. 9 cells + border(6px) + row-label(~18px) + padding(8px)
+    const availW = vw - 28;
+    const cs = Math.max(28, Math.min(62, Math.floor(availW / 9)));
+    r.style.setProperty('--cs', cs + 'px');
+    r.style.setProperty('--bs-font2', Math.max(12, Math.round(cs * 0.35)) + 'px');
+    r.style.setProperty('--bs-font3', Math.max(9, Math.round(cs * 0.26)) + 'px');
+    r.style.setProperty('--bs-font1', Math.max(14, Math.round(cs * 0.42)) + 'px');
+    r.style.setProperty('--bg-w', Math.round(cs * 0.84) + 'px');
+    r.style.setProperty('--bg-h', Math.round(cs * 0.87) + 'px');
+    r.style.setProperty('--dot-sz', Math.max(8, Math.round(cs * 0.26)) + 'px');
+    // Ref panel mini board: fit within screen width
+    const refCs = Math.max(16, Math.min(30, Math.floor((vw - 40) / 9)));
+    r.style.setProperty('--ref-cs', refCs + 'px');
+    r.style.setProperty('--ref-font', Math.max(8, Math.round(refCs * 0.43)) + 'px');
+  } else {
+    // PC: fixed large size
+    r.style.setProperty('--cs', '62px');
+    r.style.setProperty('--bs-font2', '22px');
+    r.style.setProperty('--bs-font3', '16px');
+    r.style.setProperty('--bs-font1', '26px');
+    r.style.setProperty('--bg-w', '52px');
+    r.style.setProperty('--bg-h', '54px');
+    r.style.setProperty('--dot-sz', '16px');
+    r.style.setProperty('--ref-cs', '30px');
+    r.style.setProperty('--ref-font', '13px');
+  }
+}
+
+window.addEventListener('resize', resizeBoard);
+window.addEventListener('orientationchange', () => setTimeout(resizeBoard, 200));
 
 // ─── Board Initialization ───
 function initGame() {
@@ -147,7 +304,7 @@ function initGame() {
   hands = {shu:[], wei:[]};
   turn = SHU; selCell = null; selHand = null; targets = [];
   gameOver = false; winner = null; lastFrom = null; lastTo = null;
-  refType = null; refOwner = null;
+  refType = null; refOwner = null; pendingPromo = null;
 
   function ps(col, row, type) { board[row-1][9-col] = {type, owner:SHU}; }
   ps(5,9,'ryubi'); ps(4,9,'kannu'); ps(6,9,'chohi');
@@ -241,8 +398,16 @@ function legalDrops(type,owner){
 function allLegalMoves(player,includeDrops){
   const mvs=[];
   for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)
-    if(board[r][c]&&board[r][c].owner===player)
-      for(const m of legalMoves(r,c))mvs.push({t:'move',fr:r,fc:c,tr:m.r,tc:m.c});
+    if(board[r][c]&&board[r][c].owner===player){
+      const pc=board[r][c];
+      for(const m of legalMoves(r,c)){
+        const cp=canPromote(pc.type);
+        const inZ=cp&&(inPromoZone(r,player)||inPromoZone(m.r,player));
+        const must=cp&&mustPromote(pc.type,m.r,player);
+        if(inZ){mvs.push({t:'move',fr:r,fc:c,tr:m.r,tc:m.c,promote:true});if(!must)mvs.push({t:'move',fr:r,fc:c,tr:m.r,tc:m.c,promote:false});}
+        else mvs.push({t:'move',fr:r,fc:c,tr:m.r,tc:m.c,promote:false});
+      }
+    }
   if(includeDrops!==false){
     const unique=[...new Set(hands[player])];
     for(const pt of unique)for(const d of legalDrops(pt,player))
@@ -261,8 +426,9 @@ function doMove(mv){
   const undo={mv};
   if(mv.t==='move'){
     undo.srcPc=board[mv.fr][mv.fc];undo.dstPc=board[mv.tr][mv.tc];undo.captured=null;
-    if(undo.dstPc&&!PT[undo.dstPc.type].k){hands[undo.srcPc.owner].push(undo.dstPc.type);undo.captured={type:undo.dstPc.type,hand:undo.srcPc.owner};}
-    board[mv.tr][mv.tc]=undo.srcPc;board[mv.fr][mv.fc]=null;
+    if(undo.dstPc&&!PT[undo.dstPc.type].k){const capT=baseType(undo.dstPc.type);hands[undo.srcPc.owner].push(capT);undo.captured={type:capT,hand:undo.srcPc.owner};}
+    const movedPc=mv.promote?{type:PROMOTE_MAP[undo.srcPc.type],owner:undo.srcPc.owner}:undo.srcPc;
+    board[mv.tr][mv.tc]=movedPc;board[mv.fr][mv.fc]=null;
   }else{
     undo.dstPc=null;const idx=hands[mv.owner].indexOf(mv.pt);
     undo.handIdx=idx;hands[mv.owner].splice(idx,1);
@@ -335,11 +501,9 @@ function aiTurn(){
 // ═══════════════════════════════════════════
 
 function genMovePattern(type) {
-  // Generate ideal movement pattern on empty 9x9 grid, piece at center (4,4)
-  // 0=empty, 1=step, 2=slide, 3=knight, 4=center
   const g = Array.from({length:9}, () => Array(9).fill(0));
   g[4][4] = 4;
-  const f = -1; // forward = up in reference display
+  const f = -1;
   const piece = PT[type];
 
   function markStep(dr,dc) {
@@ -396,17 +560,15 @@ function renderMoveRef() {
   let h = '<div class="ref-title">';
   h += '<span class="ref-name '+(isShu?'shu-p':'wei-p')+'">'+piece.n+'</span>';
   if (piece.k) h += '<span class="ref-king-badge">王将</span>';
+  if (refType in DEMOTE_MAP) h += '<span class="ref-king-badge" style="color:#ff6600;border-color:#ff6600">成</span>';
   h += '</div>';
 
-  // Movement description
   h += '<div class="ref-desc">';
   h += piece.m.map(mt => MOVE_DESC[mt]).join('<br>');
   h += '</div>';
 
-  // Forward indicator
   h += '<div class="ref-fwd">▲ 前方</div>';
 
-  // Mini board
   h += '<div class="ref-board">';
   for (let r = 0; r < 9; r++) {
     for (let c = 0; c < 9; c++) {
@@ -426,7 +588,6 @@ function renderMoveRef() {
   }
   h += '</div>';
 
-  // Legend
   h += '<div class="ref-legend">';
   const hasSlide = piece.m.some(m=>['rook','bishop','lance'].includes(m));
   const hasKnight = piece.m.includes('knight');
@@ -475,8 +636,9 @@ function renderBoard() {
         const oc=pc.owner===SHU?'shu-p':'wei-p';
         const bg=pc.owner===SHU?'shu-bg':'wei-bg';
         const sz=name.length>=3?'sz3':name.length===1?'sz1':'sz2';
+        const prm=pc.type in DEMOTE_MAP?' promoted':'';
         html+='<div class="piece-bg '+bg+'"></div>';
-        html+='<div class="piece-text '+oc+' '+sz+'">'+name+'</div>';
+        html+='<div class="piece-text '+oc+' '+sz+prm+'">'+name+'</div>';
       } else if(isTarget) { html+='<div class="dot"></div>'; }
       html+='</div>';
     }
@@ -489,7 +651,7 @@ function renderHand(owner) {
   const label=owner===SHU?'【蜀 持駒】':'【魏 持駒】';
   let html='<span class="hand-label">'+label+'</span>';
   const counts={};for(const t of hands[owner])counts[t]=(counts[t]||0)+1;
-  if(Object.keys(counts).length===0) html+='<span style="color:#555;font-size:13px">なし</span>';
+  if(Object.keys(counts).length===0) html+='<span style="color:#555;font-size:clamp(10px,2.5vw,13px)">なし</span>';
   for(const[type,cnt]of Object.entries(counts)){
     const cls=owner===SHU?'shu':'wei';
     const sel=(selHand===type&&turn===owner)?' selected':'';
@@ -519,28 +681,47 @@ function showRef(type, owner) {
   renderMoveRef();
 }
 
+function executeMove(fr,fc,tr,tc,promote){
+  doMove({t:'move',fr,fc,tr,tc,promote});
+  lastFrom={r:fr,c:fc};lastTo={r:tr,c:tc};clearSelection();
+  if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
+  else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
+  turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);
+}
+function executeDrop(type,r,c){
+  doMove({t:'drop',pt:type,tr:r,tc:c,owner:SHU});
+  lastFrom=null;lastTo={r,c};clearSelection();
+  if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
+  else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
+  turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);
+}
+function showPromoDialog(){document.getElementById('promo-overlay').style.display='flex';}
+function resolvePromo(doP){
+  document.getElementById('promo-overlay').style.display='none';
+  if(pendingPromo){executeMove(pendingPromo.fr,pendingPromo.fc,pendingPromo.tr,pendingPromo.tc,doP);pendingPromo=null;}
+}
+
 function clickCell(r, c) {
-  // Always show reference for any clicked piece (even during AI turn)
+  if(pendingPromo)return;
   const pcAt = board[r][c];
   if (pcAt) showRef(pcAt.type, pcAt.owner);
 
-  // Block game actions if not player's turn
   if (gameOver || turn !== SHU) return;
 
   if (targets.some(t=>t.r===r&&t.c===c)) {
     if (selCell) {
-      doMove({t:'move',fr:selCell.r,fc:selCell.c,tr:r,tc:c});
-      lastFrom={r:selCell.r,c:selCell.c};lastTo={r,c};clearSelection();
-      if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
-      else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
-      turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);return;
+      const srcPc=board[selCell.r][selCell.c];
+      const cp=canPromote(srcPc.type);
+      const inZ=cp&&(inPromoZone(selCell.r,SHU)||inPromoZone(r,SHU));
+      if(inZ){
+        if(mustPromote(srcPc.type,r,SHU)){executeMove(selCell.r,selCell.c,r,c,true);}
+        else{pendingPromo={fr:selCell.r,fc:selCell.c,tr:r,tc:c};showPromoDialog();}
+      }else{executeMove(selCell.r,selCell.c,r,c,false);}
+      return;
     }
     if (selHand) {
-      doMove({t:'drop',pt:selHand,tr:r,tc:c,owner:SHU});
-      lastFrom=null;lastTo={r,c};clearSelection();
-      if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
-      else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
-      turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);return;
+      executeDrop(selHand,r,c);
+      return;
     }
   }
 
@@ -554,6 +735,7 @@ function clickCell(r, c) {
 }
 
 function clickHand(type) {
+  if(pendingPromo)return;
   if(gameOver||turn!==SHU)return;
   showRef(type, SHU);
   selCell=null;
@@ -565,6 +747,7 @@ function clickHand(type) {
 // ═══════════════════════════════════════════
 //  Start
 // ═══════════════════════════════════════════
+resizeBoard();
 initGame();
 </script>
 </body>
