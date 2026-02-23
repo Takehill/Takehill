@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三國志将棋 - 蜀 vs 魏</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;background:#1a0e08;color:#f0d9b5;display:flex;justify-content:center;padding:15px}
+#app{text-align:center}
+h1{margin-bottom:8px;font-size:26px;color:#d4a76a}
+#status{margin:8px 0;font-size:17px;min-height:26px;color:#ffd700}
+
+/* ── Layout: board + reference panel ── */
+#game-container{display:flex;flex-direction:row;gap:20px;align-items:flex-start;justify-content:center}
+#board-section{text-align:center}
+@media(max-width:850px){
+  #game-container{flex-direction:column;align-items:center}
+}
+
+.hand-area{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;min-height:44px;margin:4px 0;background:#0d0704;border:1px solid #3a2a1a;border-radius:5px;padding:4px 10px;gap:4px}
+.hand-label{margin-right:8px;font-size:13px;color:#999}
+.hand-piece{padding:3px 7px;border:2px solid #555;border-radius:4px;cursor:pointer;font-size:15px;font-weight:bold;transition:all .15s}
+.hand-piece.shu{background:#3a1515;color:#ff6b6b}
+.hand-piece.wei{background:#15253a;color:#6b9bff}
+.hand-piece:hover{border-color:#ffd700}
+.hand-piece.selected{border-color:#ffd700;box-shadow:0 0 8px #ffd700}
+.hand-piece .count{font-size:11px;color:#ccc;margin-left:2px}
+#board{display:grid;grid-template-columns:repeat(9,62px);grid-template-rows:repeat(9,62px);border:3px solid #8b4513;background:#d4a76a;margin:0 auto}
+.col-labels{display:flex;justify-content:center;margin-bottom:2px}
+.col-label{width:62px;text-align:center;font-size:13px;color:#8b7355}
+.board-row-wrap{display:flex;justify-content:center;align-items:stretch}
+.row-labels{display:flex;flex-direction:column}
+.row-label{height:62px;display:flex;align-items:center;padding-left:4px;font-size:13px;color:#8b7355}
+.cell{width:62px;height:62px;border:1px solid #8b7355;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;user-select:none;transition:background .1s}
+.cell:hover{background:rgba(255,255,0,.15)}
+.cell.selected{background:rgba(255,215,0,.45)!important}
+.cell.last-from{background:rgba(100,149,237,.25)}
+.cell.last-to{background:rgba(100,149,237,.35)}
+.cell.valid-target{background:rgba(0,180,0,.25)}
+.cell.valid-target.has-enemy{background:rgba(200,0,0,.25)}
+.cell .dot{position:absolute;width:16px;height:16px;background:rgba(0,140,0,.5);border-radius:50%;pointer-events:none}
+.piece-text{font-weight:bold;text-align:center;pointer-events:none;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-2px;line-height:1}
+.piece-text.shu-p{color:#b01030}
+.piece-text.wei-p{color:#1040a0;transform:rotate(180deg)}
+.piece-text.sz2{font-size:22px}
+.piece-text.sz3{font-size:16px}
+.piece-text.sz1{font-size:26px}
+.piece-bg{position:absolute;width:52px;height:54px;clip-path:polygon(50% 2%,95% 18%,95% 98%,5% 98%,5% 18%);pointer-events:none}
+.piece-bg.shu-bg{background:rgba(255,220,180,.85)}
+.piece-bg.wei-bg{background:rgba(180,210,255,.85);transform:rotate(180deg)}
+button{margin-top:12px;padding:8px 28px;font-size:15px;background:#8b4513;color:#f0d9b5;border:2px solid #d4a76a;border-radius:5px;cursor:pointer;font-family:inherit}
+button:hover{background:#a0522d}
+
+/* ── Reference Panel ── */
+#ref-panel{min-width:290px;background:#0d0704;border:1px solid #3a2a1a;border-radius:8px;padding:12px;text-align:center}
+.ref-empty{color:#555;font-size:14px;padding:40px 10px;line-height:1.8}
+.ref-title{margin-bottom:6px}
+.ref-name{font-size:22px;font-weight:bold}
+.ref-name.shu-p{color:#e03050}
+.ref-name.wei-p{color:#4080e0}
+.ref-king-badge{display:inline-block;font-size:11px;color:#ffd700;border:1px solid #ffd700;border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:middle}
+.ref-desc{font-size:13px;color:#aaa;margin-bottom:8px;line-height:1.5}
+.ref-fwd{font-size:11px;color:#777;margin-bottom:2px}
+.ref-board{display:grid;grid-template-columns:repeat(9,30px);grid-template-rows:repeat(9,30px);border:2px solid #5a4020;background:#2a1a0a;margin:0 auto;width:fit-content}
+.ref-cell{width:30px;height:30px;border:1px solid rgba(90,64,32,.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:bold;color:transparent}
+.ref-cell.ref-center{color:#fff;font-size:13px;z-index:1}
+.ref-center.ref-shu{background:rgba(180,16,48,.85)}
+.ref-center.ref-wei{background:rgba(16,64,160,.85)}
+.ref-cell.ref-step{background:rgba(230,140,0,.7)}
+.ref-cell.ref-slide{background:rgba(220,200,0,.45)}
+.ref-cell.ref-knight{background:rgba(0,180,80,.6)}
+.ref-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;font-size:12px;color:#aaa}
+.ref-leg-item{display:flex;align-items:center;gap:3px}
+.ref-leg-box{width:14px;height:14px;border-radius:2px;display:inline-block}
+.ref-leg-box.lg-step{background:rgba(230,140,0,.7)}
+.ref-leg-box.lg-slide{background:rgba(220,200,0,.45)}
+.ref-leg-box.lg-knight{background:rgba(0,180,80,.6)}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>三國志将棋</h1>
+  <div id="status"></div>
+  <div id="game-container">
+    <div id="board-section">
+      <div class="hand-area" id="wei-hand"><span class="hand-label">【魏 持駒】</span></div>
+      <div class="col-labels" id="col-labels"></div>
+      <div class="board-row-wrap">
+        <div id="board"></div>
+        <div class="row-labels" id="row-labels"></div>
+      </div>
+      <div class="hand-area" id="shu-hand"><span class="hand-label">【蜀 持駒】</span></div>
+      <button onclick="initGame()">新規対局</button>
+    </div>
+    <div id="ref-panel">
+      <div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>
+    </div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════
+//  三國志将棋 - Game Engine
+// ═══════════════════════════════════════════
+
+const SZ = 9;
+const SHU = 'shu', WEI = 'wei';
+
+const PT = {
+  ryubi:   {n:'劉備', m:['cross'],                k:true,  v:9999},
+  kannu:   {n:'関羽', m:['rook','king'],           k:false, v:1200},
+  chohi:   {n:'張飛', m:['bishop','lance'],        k:false, v:900},
+  chouun:  {n:'超雲', m:['rook'],                  k:false, v:800},
+  kouchuu: {n:'黄忠', m:['rook'],                  k:false, v:800},
+  bachou:  {n:'馬超', m:['bishop'],                k:false, v:700},
+  koumei:  {n:'孔明', m:['king','knight'],         k:false, v:700},
+  houtou:  {n:'龐統', m:['king','knight'],         k:false, v:700},
+  sousou:  {n:'曹操', m:['king','knight','lance'], k:true,  v:9999},
+  kakuka:  {n:'郭嘉', m:['king'],                  k:false, v:500},
+  juniku:  {n:'荀彧', m:['king'],                  k:false, v:500},
+  junyuu:  {n:'荀攸', m:['silver'],                k:false, v:400},
+  teiiku:  {n:'程昱', m:['silver'],                k:false, v:400},
+  kakouton:{n:'夏侯惇',m:['rook'],                 k:false, v:800},
+  kakouen: {n:'夏侯淵',m:['bishop'],               k:false, v:700},
+  churyou: {n:'張遼', m:['bishop'],                k:false, v:700},
+  kyocho:  {n:'許褚', m:['rook'],                  k:false, v:800},
+  jokou:   {n:'徐晃', m:['rook'],                  k:false, v:800},
+  fu:      {n:'歩',   m:['pawn'],                  k:false, v:100},
+};
+
+// Movement type descriptions
+const MOVE_DESC = {
+  cross:'十字（上下左右１マス）', king:'王（全方向１マス）',
+  rook:'飛車（縦横何マスでも）', bishop:'角行（斜め何マスでも）',
+  knight:'桂馬（前方にL字跳び）', lance:'香車（前方何マスでも）',
+  gold:'金将（前・横・後ろ）', silver:'銀将（前・斜め）',
+  pawn:'歩兵（前方１マス）'
+};
+
+// ─── Game State ───
+let board, hands, turn, selCell, selHand, targets, gameOver, winner, lastFrom, lastTo;
+let refType = null, refOwner = null; // reference panel state
+
+// ─── Board Initialization ───
+function initGame() {
+  board = Array.from({length:SZ}, () => Array(SZ).fill(null));
+  hands = {shu:[], wei:[]};
+  turn = SHU; selCell = null; selHand = null; targets = [];
+  gameOver = false; winner = null; lastFrom = null; lastTo = null;
+  refType = null; refOwner = null;
+
+  function ps(col, row, type) { board[row-1][9-col] = {type, owner:SHU}; }
+  ps(5,9,'ryubi'); ps(4,9,'kannu'); ps(6,9,'chohi');
+  ps(5,8,'chouun'); ps(4,8,'kouchuu'); ps(6,8,'bachou');
+  ps(3,9,'koumei'); ps(7,9,'houtou');
+  ps(3,7,'fu'); ps(4,7,'fu'); ps(5,7,'fu'); ps(6,7,'fu'); ps(7,7,'fu');
+
+  function pw(col, row, type) { board[10-row-1][9-(10-col)] = {type, owner:WEI}; }
+  pw(5,9,'sousou'); pw(4,9,'kakuka'); pw(6,9,'juniku');
+  pw(3,9,'junyuu'); pw(7,9,'teiiku');
+  pw(2,8,'kakouton'); pw(8,8,'kakouen'); pw(1,8,'churyou');
+  pw(5,8,'kyocho'); pw(9,8,'jokou');
+  pw(3,7,'fu'); pw(4,7,'fu'); pw(5,7,'fu'); pw(6,7,'fu'); pw(7,7,'fu');
+
+  render();
+  renderMoveRef();
+}
+
+// ═══════════════════════════════════════════
+//  Move Generation
+// ═══════════════════════════════════════════
+
+function fwd(owner) { return owner === SHU ? -1 : 1; }
+
+function genMoves(type, r, c, owner) {
+  const piece = PT[type]; const f = fwd(owner);
+  const mvs = []; const seen = new Set();
+  function add(nr, nc) {
+    if (nr<0||nr>=SZ||nc<0||nc>=SZ) return false;
+    const key=nr*SZ+nc; if(seen.has(key)) return false;
+    const t=board[nr][nc]; if(t&&t.owner===owner) return false;
+    seen.add(key); mvs.push({r:nr,c:nc}); return !t;
+  }
+  function step(o){for(const[dr,dc]of o)add(r+dr,c+dc);}
+  function slide(d){for(const[dr,dc]of d)for(let i=1;i<SZ;i++)if(!add(r+dr*i,c+dc*i))break;}
+  for(const mt of piece.m){
+    switch(mt){
+      case'cross':step([[0,1],[0,-1],[1,0],[-1,0]]);break;
+      case'king':step([[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]]);break;
+      case'rook':slide([[0,1],[0,-1],[1,0],[-1,0]]);break;
+      case'bishop':slide([[1,1],[1,-1],[-1,1],[-1,-1]]);break;
+      case'knight':step([[f*2,-1],[f*2,1]]);break;
+      case'lance':slide([[f,0]]);break;
+      case'gold':step([[f,0],[f,-1],[f,1],[0,-1],[0,1],[-f,0]]);break;
+      case'silver':step([[f,0],[f,-1],[f,1],[-f,-1],[-f,1]]);break;
+      case'pawn':step([[f,0]]);break;
+    }
+  }
+  return mvs;
+}
+
+// ═══════════════════════════════════════════
+//  Check Detection & Legal Moves
+// ═══════════════════════════════════════════
+
+function findKing(owner){
+  for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)
+    if(board[r][c]&&board[r][c].owner===owner&&PT[board[r][c].type].k)return{r,c};
+  return null;
+}
+function inCheck(owner){
+  const kp=findKing(owner);if(!kp)return true;
+  const opp=owner===SHU?WEI:SHU;
+  for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)
+    if(board[r][c]&&board[r][c].owner===opp){
+      if(genMoves(board[r][c].type,r,c,opp).some(m=>m.r===kp.r&&m.c===kp.c))return true;
+    }
+  return false;
+}
+function legalMoves(r,c){
+  const pc=board[r][c];if(!pc)return[];
+  return genMoves(pc.type,r,c,pc.owner).filter(m=>{
+    const cap=board[m.r][m.c];board[m.r][m.c]=pc;board[r][c]=null;
+    const chk=inCheck(pc.owner);board[r][c]=pc;board[m.r][m.c]=cap;return!chk;
+  });
+}
+function legalDrops(type,owner){
+  const sq=[];
+  for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++){
+    if(board[r][c])continue;
+    if(type==='fu'){
+      if((owner===SHU&&r===0)||(owner===WEI&&r===8))continue;
+      let nifu=false;for(let rr=0;rr<SZ;rr++)if(board[rr][c]&&board[rr][c].type==='fu'&&board[rr][c].owner===owner){nifu=true;break;}
+      if(nifu)continue;
+    }
+    board[r][c]={type,owner};const chk=inCheck(owner);board[r][c]=null;
+    if(!chk)sq.push({r,c});
+  }
+  return sq;
+}
+function allLegalMoves(player,includeDrops){
+  const mvs=[];
+  for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)
+    if(board[r][c]&&board[r][c].owner===player)
+      for(const m of legalMoves(r,c))mvs.push({t:'move',fr:r,fc:c,tr:m.r,tc:m.c});
+  if(includeDrops!==false){
+    const unique=[...new Set(hands[player])];
+    for(const pt of unique)for(const d of legalDrops(pt,player))
+      mvs.push({t:'drop',pt,tr:d.r,tc:d.c,owner:player});
+  }
+  return mvs;
+}
+function isCheckmate(p){return inCheck(p)&&allLegalMoves(p,true).length===0;}
+function hasNoMoves(p){return allLegalMoves(p,true).length===0;}
+
+// ═══════════════════════════════════════════
+//  Move Execution (with undo)
+// ═══════════════════════════════════════════
+
+function doMove(mv){
+  const undo={mv};
+  if(mv.t==='move'){
+    undo.srcPc=board[mv.fr][mv.fc];undo.dstPc=board[mv.tr][mv.tc];undo.captured=null;
+    if(undo.dstPc&&!PT[undo.dstPc.type].k){hands[undo.srcPc.owner].push(undo.dstPc.type);undo.captured={type:undo.dstPc.type,hand:undo.srcPc.owner};}
+    board[mv.tr][mv.tc]=undo.srcPc;board[mv.fr][mv.fc]=null;
+  }else{
+    undo.dstPc=null;const idx=hands[mv.owner].indexOf(mv.pt);
+    undo.handIdx=idx;hands[mv.owner].splice(idx,1);
+    board[mv.tr][mv.tc]={type:mv.pt,owner:mv.owner};
+  }
+  return undo;
+}
+function undoMove(undo){
+  const mv=undo.mv;
+  if(mv.t==='move'){
+    board[mv.fr][mv.fc]=undo.srcPc;board[mv.tr][mv.tc]=undo.dstPc;
+    if(undo.captured){const h=hands[undo.captured.hand];h.splice(h.lastIndexOf(undo.captured.type),1);}
+  }else{board[mv.tr][mv.tc]=null;hands[mv.owner].splice(undo.handIdx,0,mv.pt);}
+}
+
+// ═══════════════════════════════════════════
+//  AI (Minimax with Alpha-Beta, 2-ply)
+// ═══════════════════════════════════════════
+
+function evaluate(){
+  let shuK=false,weiK=false,score=0;
+  for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++){
+    const p=board[r][c];if(!p)continue;
+    if(PT[p.type].k){if(p.owner===SHU)shuK=true;else weiK=true;continue;}
+    const v=PT[p.type].v;
+    if(p.owner===WEI){score+=v+r*3;}else{score-=v+(8-r)*3;}
+  }
+  if(!shuK)return 99999;if(!weiK)return-99999;
+  for(const t of hands[WEI])score+=PT[t].v*0.8;
+  for(const t of hands[SHU])score-=PT[t].v*0.8;
+  if(inCheck(SHU))score+=150;if(inCheck(WEI))score-=150;
+  return score;
+}
+function orderMoves(mvs){
+  return mvs.sort((a,b)=>{
+    let sa=0,sb=0;
+    if(a.t==='move'&&board[a.tr][a.tc])sa=PT[board[a.tr][a.tc].type].v;
+    if(b.t==='move'&&board[b.tr][b.tc])sb=PT[board[b.tr][b.tc].type].v;
+    return sb-sa;
+  });
+}
+function minimax(depth,alpha,beta,maximizing){
+  if(depth===0)return evaluate();
+  const player=maximizing?WEI:SHU;
+  const mvs=orderMoves(allLegalMoves(player,false));
+  if(mvs.length===0)return inCheck(player)?(maximizing?-90000+depth:90000-depth):0;
+  if(maximizing){let best=-Infinity;for(const mv of mvs){const u=doMove(mv);best=Math.max(best,minimax(depth-1,alpha,beta,false));undoMove(u);alpha=Math.max(alpha,best);if(beta<=alpha)break;}return best;}
+  else{let best=Infinity;for(const mv of mvs){const u=doMove(mv);best=Math.min(best,minimax(depth-1,alpha,beta,true));undoMove(u);beta=Math.min(beta,best);if(beta<=alpha)break;}return best;}
+}
+function aiTurn(){
+  if(gameOver)return;
+  const mvs=allLegalMoves(WEI,true);
+  if(mvs.length===0){gameOver=true;winner=SHU;render();return;}
+  let bestScore=-Infinity,bestMvs=[];
+  for(const mv of orderMoves(mvs)){
+    const u=doMove(mv);const sc=minimax(1,-Infinity,Infinity,false);undoMove(u);
+    if(sc>bestScore){bestScore=sc;bestMvs=[mv];}else if(sc===bestScore){bestMvs.push(mv);}
+  }
+  const chosen=bestMvs[Math.floor(Math.random()*bestMvs.length)];
+  doMove(chosen);
+  lastFrom=chosen.t==='move'?{r:chosen.fr,c:chosen.fc}:null;
+  lastTo={r:chosen.tr,c:chosen.tc};
+  if(isCheckmate(SHU)){gameOver=true;winner=WEI;}
+  else if(hasNoMoves(SHU)){gameOver=true;winner=WEI;}
+  turn=SHU;render();
+}
+
+// ═══════════════════════════════════════════
+//  Movement Reference Panel
+// ═══════════════════════════════════════════
+
+function genMovePattern(type) {
+  // Generate ideal movement pattern on empty 9x9 grid, piece at center (4,4)
+  // 0=empty, 1=step, 2=slide, 3=knight, 4=center
+  const g = Array.from({length:9}, () => Array(9).fill(0));
+  g[4][4] = 4;
+  const f = -1; // forward = up in reference display
+  const piece = PT[type];
+
+  function markStep(dr,dc) {
+    const r=4+dr,c=4+dc;
+    if(r>=0&&r<9&&c>=0&&c<9&&g[r][c]!==4) g[r][c]=1;
+  }
+  function markSlide(dr,dc) {
+    for(let i=1;i<9;i++){const r=4+dr*i,c=4+dc*i;
+      if(r<0||r>=9||c<0||c>=9)break;
+      if(g[r][c]===0) g[r][c]=2;
+    }
+  }
+  function markKnight(dr,dc) {
+    const r=4+dr,c=4+dc;
+    if(r>=0&&r<9&&c>=0&&c<9&&g[r][c]===0) g[r][c]=3;
+  }
+
+  for (const mt of piece.m) {
+    switch(mt) {
+      case 'cross':
+        markStep(0,1);markStep(0,-1);markStep(1,0);markStep(-1,0);break;
+      case 'king':
+        markStep(0,1);markStep(0,-1);markStep(1,0);markStep(-1,0);
+        markStep(1,1);markStep(1,-1);markStep(-1,1);markStep(-1,-1);break;
+      case 'rook':
+        markSlide(0,1);markSlide(0,-1);markSlide(1,0);markSlide(-1,0);break;
+      case 'bishop':
+        markSlide(1,1);markSlide(1,-1);markSlide(-1,1);markSlide(-1,-1);break;
+      case 'knight':
+        markKnight(f*2,-1);markKnight(f*2,1);break;
+      case 'lance':
+        markSlide(f,0);break;
+      case 'gold':
+        markStep(f,0);markStep(f,-1);markStep(f,1);markStep(0,-1);markStep(0,1);markStep(-f,0);break;
+      case 'silver':
+        markStep(f,0);markStep(f,-1);markStep(f,1);markStep(-f,-1);markStep(-f,1);break;
+      case 'pawn':
+        markStep(f,0);break;
+    }
+  }
+  return g;
+}
+
+function renderMoveRef() {
+  const panel = document.getElementById('ref-panel');
+  if (!refType) {
+    panel.innerHTML = '<div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>';
+    return;
+  }
+  const piece = PT[refType];
+  const isShu = refOwner === SHU;
+  const grid = genMovePattern(refType);
+
+  let h = '<div class="ref-title">';
+  h += '<span class="ref-name '+(isShu?'shu-p':'wei-p')+'">'+piece.n+'</span>';
+  if (piece.k) h += '<span class="ref-king-badge">王将</span>';
+  h += '</div>';
+
+  // Movement description
+  h += '<div class="ref-desc">';
+  h += piece.m.map(mt => MOVE_DESC[mt]).join('<br>');
+  h += '</div>';
+
+  // Forward indicator
+  h += '<div class="ref-fwd">▲ 前方</div>';
+
+  // Mini board
+  h += '<div class="ref-board">';
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      let cls = 'ref-cell';
+      let content = '';
+      switch(grid[r][c]) {
+        case 4:
+          cls += ' ref-center '+(isShu?'ref-shu':'ref-wei');
+          content = piece.n.substring(0,1);
+          break;
+        case 1: cls += ' ref-step'; break;
+        case 2: cls += ' ref-slide'; break;
+        case 3: cls += ' ref-knight'; break;
+      }
+      h += '<div class="'+cls+'">'+content+'</div>';
+    }
+  }
+  h += '</div>';
+
+  // Legend
+  h += '<div class="ref-legend">';
+  const hasSlide = piece.m.some(m=>['rook','bishop','lance'].includes(m));
+  const hasKnight = piece.m.includes('knight');
+  h += '<span class="ref-leg-item"><span class="ref-leg-box lg-step"></span>１マス</span>';
+  if (hasSlide) h += '<span class="ref-leg-item"><span class="ref-leg-box lg-slide"></span>何マスでも</span>';
+  if (hasKnight) h += '<span class="ref-leg-item"><span class="ref-leg-box lg-knight"></span>桂馬跳び</span>';
+  h += '</div>';
+
+  panel.innerHTML = h;
+}
+
+// ═══════════════════════════════════════════
+//  UI Rendering
+// ═══════════════════════════════════════════
+
+function render() {
+  renderBoard(); renderHand(SHU); renderHand(WEI); renderStatus(); renderLabels();
+}
+
+function renderLabels() {
+  const cl = document.getElementById('col-labels');
+  if (!cl.children.length) {
+    let h='';for(let c=0;c<SZ;c++)h+='<div class="col-label">'+(9-c)+'</div>';cl.innerHTML=h;
+  }
+  const rl = document.getElementById('row-labels');
+  if (!rl.children.length) {
+    const rows='一二三四五六七八九';let h='';
+    for(let r=0;r<SZ;r++)h+='<div class="row-label">'+rows[r]+'</div>';rl.innerHTML=h;
+  }
+}
+
+function renderBoard() {
+  const el = document.getElementById('board');
+  let html = '';
+  for (let r=0;r<SZ;r++) {
+    for (let c=0;c<SZ;c++) {
+      const pc=board[r][c]; let cls='cell';
+      if(selCell&&selCell.r===r&&selCell.c===c) cls+=' selected';
+      if(lastFrom&&lastFrom.r===r&&lastFrom.c===c) cls+=' last-from';
+      if(lastTo&&lastTo.r===r&&lastTo.c===c) cls+=' last-to';
+      const isTarget=targets.some(t=>t.r===r&&t.c===c);
+      if(isTarget){cls+=' valid-target';if(pc)cls+=' has-enemy';}
+      html+='<div class="'+cls+'" onclick="clickCell('+r+','+c+')">';
+      if(pc){
+        const name=PT[pc.type].n;
+        const oc=pc.owner===SHU?'shu-p':'wei-p';
+        const bg=pc.owner===SHU?'shu-bg':'wei-bg';
+        const sz=name.length>=3?'sz3':name.length===1?'sz1':'sz2';
+        html+='<div class="piece-bg '+bg+'"></div>';
+        html+='<div class="piece-text '+oc+' '+sz+'">'+name+'</div>';
+      } else if(isTarget) { html+='<div class="dot"></div>'; }
+      html+='</div>';
+    }
+  }
+  el.innerHTML = html;
+}
+
+function renderHand(owner) {
+  const el=document.getElementById(owner===SHU?'shu-hand':'wei-hand');
+  const label=owner===SHU?'【蜀 持駒】':'【魏 持駒】';
+  let html='<span class="hand-label">'+label+'</span>';
+  const counts={};for(const t of hands[owner])counts[t]=(counts[t]||0)+1;
+  if(Object.keys(counts).length===0) html+='<span style="color:#555;font-size:13px">なし</span>';
+  for(const[type,cnt]of Object.entries(counts)){
+    const cls=owner===SHU?'shu':'wei';
+    const sel=(selHand===type&&turn===owner)?' selected':'';
+    const click=(owner===SHU&&turn===SHU&&!gameOver)?' onclick="clickHand(\''+type+'\')"':'';
+    html+='<span class="hand-piece '+cls+sel+'"'+click+'>'+PT[type].n;
+    if(cnt>1)html+='<span class="count">x'+cnt+'</span>';
+    html+='</span>';
+  }
+  el.innerHTML=html;
+}
+
+function renderStatus() {
+  const el=document.getElementById('status');
+  if(gameOver){el.textContent=winner===SHU?'蜀の勝利！':'魏の勝利！';el.style.color=winner===SHU?'#ff6b6b':'#6b9bff';return;}
+  if(turn===WEI){el.textContent='魏が考えています...';el.style.color='#6b9bff';}
+  else{el.textContent='蜀のターンです'+(inCheck(SHU)?' 【王手！】':'');el.style.color='#ffd700';}
+}
+
+// ═══════════════════════════════════════════
+//  Event Handlers
+// ═══════════════════════════════════════════
+
+function clearSelection(){selCell=null;selHand=null;targets=[];}
+
+function showRef(type, owner) {
+  refType = type; refOwner = owner;
+  renderMoveRef();
+}
+
+function clickCell(r, c) {
+  // Always show reference for any clicked piece (even during AI turn)
+  const pcAt = board[r][c];
+  if (pcAt) showRef(pcAt.type, pcAt.owner);
+
+  // Block game actions if not player's turn
+  if (gameOver || turn !== SHU) return;
+
+  if (targets.some(t=>t.r===r&&t.c===c)) {
+    if (selCell) {
+      doMove({t:'move',fr:selCell.r,fc:selCell.c,tr:r,tc:c});
+      lastFrom={r:selCell.r,c:selCell.c};lastTo={r,c};clearSelection();
+      if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
+      else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
+      turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);return;
+    }
+    if (selHand) {
+      doMove({t:'drop',pt:selHand,tr:r,tc:c,owner:SHU});
+      lastFrom=null;lastTo={r,c};clearSelection();
+      if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
+      else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
+      turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);return;
+    }
+  }
+
+  if (pcAt && pcAt.owner === SHU) {
+    selHand=null;
+    if(selCell&&selCell.r===r&&selCell.c===c){clearSelection();}
+    else{selCell={r,c};targets=legalMoves(r,c);}
+    render();return;
+  }
+  clearSelection();render();
+}
+
+function clickHand(type) {
+  if(gameOver||turn!==SHU)return;
+  showRef(type, SHU);
+  selCell=null;
+  if(selHand===type){clearSelection();}
+  else{selHand=type;targets=legalDrops(type,SHU);}
+  render();
+}
+
+// ═══════════════════════════════════════════
+//  Start
+// ═══════════════════════════════════════════
+initGame();
+</script>
+</body>
+</html>
