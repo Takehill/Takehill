@@ -13,7 +13,12 @@ html,body{
 }
 body{
   font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
-  background:#1a0e08;color:#f0d9b5;
+  background:#f0ede8;color:#3a2a1a;
+  background-image:
+    linear-gradient(45deg,#e5e1da 25%,transparent 25%,transparent 75%,#e5e1da 75%),
+    linear-gradient(45deg,#e5e1da 25%,transparent 25%,transparent 75%,#e5e1da 75%);
+  background-size:20px 20px;
+  background-position:0 0,10px 10px;
   display:flex;flex-direction:column;align-items:center;
   user-select:none;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -21,7 +26,7 @@ body{
 
 #app{
   width:100%;height:100%;
-  display:flex;flex-direction:column;align-items:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
   overflow:hidden;
 }
 
@@ -29,14 +34,15 @@ body{
 #game-container{
   display:flex;flex-direction:row;gap:clamp(8px,1.5vw,20px);
   align-items:flex-start;justify-content:center;
-  flex:1 1 auto;min-height:0;
+  flex:0 0 auto;min-height:0;
   width:100%;overflow:hidden;
   padding:0 4px;
 }
 #board-section{text-align:center;flex-shrink:0}
 #side-panel{display:flex;flex-direction:column;align-items:center;gap:clamp(6px,1vw,12px);flex-shrink:0}
+#side-bottom{display:flex;flex-direction:column;align-items:center;flex:1;min-height:0}
 #info-panel{text-align:center}
-#status{font-size:clamp(13px,3.5vw,17px);min-height:clamp(20px,4vw,26px);color:#ffd700;margin:2px 0}
+#status{font-size:clamp(13px,3.5vw,17px);min-height:clamp(20px,4vw,26px);color:#b8860b;margin:2px 0;font-weight:bold}
 
 /* ── Board: CSS変数でサイズ制御 ── */
 :root{--cs:62px;--bs-font2:22px;--bs-font3:16px;--bs-font1:26px;--bg-w:52px;--bg-h:54px;--dot-sz:16px;--ref-cs:30px;--ref-font:13px}
@@ -44,20 +50,20 @@ body{
 .hand-area{
   display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
   min-height:clamp(32px,6vw,44px);margin:2px 0;
-  background:#0d0704;border:1px solid #3a2a1a;border-radius:5px;
+  background:#f5f0e8;border:1px solid #c4a87a;border-radius:5px;
   padding:2px clamp(4px,1.5vw,10px);gap:clamp(2px,0.8vw,4px)
 }
-.hand-label{margin-right:clamp(4px,1vw,8px);font-size:clamp(10px,2.5vw,13px);color:#999}
+.hand-label{margin-right:clamp(4px,1vw,8px);font-size:clamp(10px,2.5vw,13px);color:#5a4530;font-weight:bold}
 .hand-piece{
   padding:clamp(2px,0.5vw,3px) clamp(4px,1vw,7px);
-  border:2px solid #555;border-radius:4px;cursor:pointer;
+  border:2px solid #bbb;border-radius:4px;cursor:pointer;
   font-size:clamp(11px,3vw,15px);font-weight:bold;transition:all .15s
 }
-.hand-piece.shu{background:#3a1515;color:#ff6b6b}
-.hand-piece.wei{background:#15253a;color:#6b9bff}
-.hand-piece:hover{border-color:#ffd700}
-.hand-piece.selected{border-color:#ffd700;box-shadow:0 0 8px #ffd700}
-.hand-piece .count{font-size:clamp(9px,2vw,11px);color:#ccc;margin-left:2px}
+.hand-piece.shu{background:#fbe8e8;color:#c02030}
+.hand-piece.wei{background:#e4ecf8;color:#2050b0}
+.hand-piece:hover{border-color:#c8960a}
+.hand-piece.selected{border-color:#c8960a;box-shadow:0 0 8px #daa520}
+.hand-piece .count{font-size:clamp(9px,2vw,11px);color:#555;margin-left:2px}
 
 #board{
   display:grid;
@@ -66,7 +72,7 @@ body{
   border:3px solid #8b4513;background:#d4a76a;margin:0 auto
 }
 .col-labels{display:flex;justify-content:center;margin-bottom:1px}
-.col-label{width:var(--cs);text-align:center;font-size:clamp(10px,2.5vw,13px);color:#8b7355}
+.col-label{width:var(--cs);text-align:center;font-size:clamp(10px,2.5vw,13px);color:#8b7355;font-weight:500}
 .board-row-wrap{display:flex;justify-content:center;align-items:stretch}
 .row-labels{display:flex;flex-direction:column}
 .row-label{height:var(--cs);display:flex;align-items:center;padding-left:2px;font-size:clamp(10px,2.5vw,13px);color:#8b7355}
@@ -77,19 +83,20 @@ body{
   cursor:pointer;position:relative;user-select:none;transition:background .1s;
   -webkit-tap-highlight-color:transparent;
 }
-.cell:hover{background:rgba(255,255,0,.15)}
-.cell.selected{background:rgba(255,215,0,.45)!important}
-.cell.last-from{background:rgba(100,149,237,.25)}
-.cell.last-to{background:rgba(100,149,237,.35)}
+.cell:hover{background:rgba(200,170,0,.18)}
+.cell.selected{background:rgba(200,150,20,.4)!important}
+.cell.last-from{background:rgba(80,130,210,.2)}
+.cell.last-to{background:rgba(80,130,210,.3)}
 .cell.valid-target{background:rgba(0,180,0,.25)}
 .cell.valid-target.has-enemy{background:rgba(200,0,0,.25)}
 .cell .dot{position:absolute;width:var(--dot-sz);height:var(--dot-sz);background:rgba(0,140,0,.5);border-radius:50%;pointer-events:none}
 
 .piece-text{
   font-weight:bold;text-align:center;pointer-events:none;
-  writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-2px;line-height:1
+  writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-2px;line-height:1;
+  position:relative;z-index:1
 }
-.piece-text.shu-p{color:#b01030}
+.piece-text.shu-p{color:#8b1020}
 .piece-text.wei-p{color:#1040a0;transform:rotate(180deg)}
 .piece-text.sz2{font-size:var(--bs-font2)}
 .piece-text.sz3{font-size:var(--bs-font3)}
@@ -100,13 +107,21 @@ body{
   position:absolute;width:var(--bg-w);height:var(--bg-h);
   clip-path:polygon(50% 2%,95% 18%,95% 98%,5% 98%,5% 18%);pointer-events:none
 }
-.piece-bg.shu-bg{background:rgba(255,220,180,.85)}
+.piece-bg.shu-bg{background:rgba(255,225,185,.92)}
 .piece-bg.wei-bg{background:rgba(180,210,255,.85);transform:rotate(180deg)}
+.king-border{
+  position:absolute;width:calc(var(--bg-w) + 6px);height:calc(var(--bg-h) + 4px);
+  clip-path:polygon(50% 0%,98% 16%,98% 98%,2% 98%,2% 16%);pointer-events:none;
+}
+.king-border.shu-king{background:#a02040}
+.king-border.wei-king{background:#3060c0;transform:rotate(180deg)}
+.piece-bg.king-bg{clip-path:polygon(50% 0%,98% 16%,98% 98%,2% 98%,2% 16%)}
+.piece-text.king-piece{font-weight:900}
 
 button{
   margin-top:clamp(4px,1vw,12px);padding:clamp(5px,1.5vw,8px) clamp(16px,4vw,28px);
-  font-size:clamp(12px,3vw,15px);background:#8b4513;color:#f0d9b5;
-  border:2px solid #d4a76a;border-radius:5px;cursor:pointer;font-family:inherit;
+  font-size:clamp(12px,3vw,15px);background:#8b4513;color:#f5ead5;
+  border:2px solid #c4a87a;border-radius:5px;cursor:pointer;font-family:inherit;
   -webkit-tap-highlight-color:transparent;
 }
 button:hover{background:#a0522d}
@@ -114,46 +129,99 @@ button:hover{background:#a0522d}
 /* ── Promotion Dialog ── */
 #promo-overlay{
   display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,.55);z-index:100;
+  background:rgba(0,0,0,.35);z-index:100;
   align-items:center;justify-content:center;
 }
 .promo-dialog{
-  background:#2a1a0a;border:3px solid #d4a76a;border-radius:12px;
+  background:#fff;border:3px solid #c4a87a;border-radius:12px;
   padding:clamp(16px,4vw,24px) clamp(20px,5vw,36px);text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
 }
-.promo-dialog p{font-size:clamp(16px,4vw,22px);color:#f0d9b5;margin-bottom:clamp(12px,3vw,20px)}
+.promo-dialog p{font-size:clamp(16px,4vw,22px);color:#3a2a1a;margin-bottom:clamp(12px,3vw,20px)}
 .promo-btn{
   margin:0 clamp(4px,1.5vw,10px);padding:clamp(8px,2vw,12px) clamp(16px,4vw,28px);
-  font-size:clamp(14px,3.5vw,18px);background:#8b4513;color:#f0d9b5;
-  border:2px solid #d4a76a;border-radius:8px;cursor:pointer;font-family:inherit;
+  font-size:clamp(14px,3.5vw,18px);background:#8b4513;color:#f5ead5;
+  border:2px solid #c4a87a;border-radius:8px;cursor:pointer;font-family:inherit;
   -webkit-tap-highlight-color:transparent;
 }
 .promo-btn:hover{background:#a0522d}
 
+/* ── Result Overlay ── */
+#result-overlay{
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0);z-index:200;
+  align-items:center;justify-content:center;cursor:pointer;
+  flex-direction:column;
+}
+#result-overlay.show{display:flex}
+#result-overlay.win{animation:res-bg-win .6s ease forwards}
+#result-overlay.lose{animation:res-bg-lose .8s ease forwards}
+@keyframes res-bg-win{to{background:rgba(0,0,0,.55)}}
+@keyframes res-bg-lose{to{background:rgba(0,0,0,.7)}}
+#result-box{
+  opacity:0;
+  text-align:center;padding:clamp(20px,5vw,40px) clamp(32px,8vw,64px);
+  border-radius:16px;position:relative;
+}
+#result-overlay.win #result-box{transform:scale(.3);animation:res-pop .5s .3s cubic-bezier(.18,.89,.32,1.28) forwards}
+#result-overlay.lose #result-box{transform:translateY(-40px);animation:res-sink .8s .4s ease forwards}
+@keyframes res-pop{to{opacity:1;transform:scale(1)}}
+@keyframes res-sink{to{opacity:1;transform:translateY(0)}}
+#result-name{
+  font-size:clamp(36px,10vw,72px);font-weight:900;
+  letter-spacing:.08em;
+}
+#result-sub{
+  font-size:clamp(20px,5vw,36px);font-weight:bold;
+  letter-spacing:.3em;margin-top:4px;
+}
+#result-overlay.win #result-name{color:#e03050;text-shadow:0 2px 12px rgba(224,48,80,.4)}
+#result-overlay.win #result-sub{color:#f0c0a0;text-shadow:0 1px 6px rgba(0,0,0,.2)}
+#result-overlay.lose #result-name{color:#8a8a8a;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+#result-overlay.lose #result-sub{color:#666;text-shadow:0 1px 4px rgba(0,0,0,.3)}
+#result-particles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
+.v-particle{
+  position:absolute;width:8px;height:8px;border-radius:50%;opacity:0;
+  animation:v-fall linear forwards;
+}
+@keyframes v-fall{
+  0%{opacity:1;transform:translateY(0) rotate(0deg)}
+  100%{opacity:0;transform:translateY(100vh) rotate(720deg)}
+}
+.d-particle{
+  position:absolute;bottom:0;width:6px;height:6px;opacity:0;
+  animation:d-rise linear forwards;
+}
+@keyframes d-rise{
+  0%{opacity:.6;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-60vh) scale(.3)}
+}
+
 /* ── Reference Panel ── */
 #ref-panel{
   min-width:0;width:clamp(220px,28vw,310px);
-  background:#0d0704;border:1px solid #3a2a1a;border-radius:8px;
+  background:#f5f0e8;border:1px solid #c4a87a;border-radius:8px;
   padding:clamp(6px,1vw,12px);text-align:center;
   flex-shrink:0;overflow:hidden;
+  display:flex;flex-direction:column;
 }
-.ref-empty{color:#555;font-size:clamp(11px,2.5vw,14px);padding:clamp(15px,3vw,40px) 6px;line-height:1.8}
+.ref-empty{color:#777;font-size:clamp(11px,2.5vw,14px);padding:6px;line-height:1.8;margin:auto 0}
 .ref-title{margin-bottom:4px}
 .ref-name{font-size:clamp(16px,3.5vw,22px);font-weight:bold}
 .ref-name.shu-p{color:#e03050}
 .ref-name.wei-p{color:#4080e0}
-.ref-king-badge{display:inline-block;font-size:clamp(9px,2vw,11px);color:#ffd700;border:1px solid #ffd700;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle}
-.ref-desc{font-size:clamp(10px,2.2vw,13px);color:#aaa;margin-bottom:4px;line-height:1.4}
-.ref-fwd{font-size:clamp(9px,2vw,11px);color:#777;margin-bottom:1px}
+.ref-king-badge{display:inline-block;font-size:clamp(9px,2vw,11px);color:#b8860b;border:1px solid #b8860b;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle}
+.ref-desc{font-size:clamp(10px,2.2vw,13px);color:#555;margin-bottom:4px;line-height:1.4;min-height:4.2em}
+.ref-fwd{font-size:clamp(9px,2vw,11px);color:#555;margin-bottom:1px}
 .ref-board{
   display:grid;
   grid-template-columns:repeat(5,var(--ref-cs));
   grid-template-rows:repeat(5,var(--ref-cs));
-  border:2px solid #5a4020;background:#2a1a0a;margin:0 auto;width:fit-content
+  border:2px solid #c4a87a;background:#e8dcc8;margin:0 auto;width:fit-content
 }
 .ref-cell{
   width:var(--ref-cs);height:var(--ref-cs);
-  border:1px solid rgba(90,64,32,.4);display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(160,130,80,.3);display:flex;align-items:center;justify-content:center;
   font-size:clamp(8px,1.8vw,10px);font-weight:bold;color:transparent
 }
 .ref-cell.ref-center{color:#fff;font-size:var(--ref-font);z-index:1}
@@ -162,22 +230,31 @@ button:hover{background:#a0522d}
 .ref-cell.ref-step{background:rgba(230,140,0,.7)}
 .ref-cell.ref-slide{background:rgba(220,200,0,.45)}
 .ref-cell.ref-knight{background:rgba(0,180,80,.6)}
-.ref-legend{display:flex;flex-wrap:wrap;gap:clamp(4px,1vw,8px);justify-content:center;margin-top:clamp(4px,1vw,10px);font-size:clamp(10px,2.2vw,12px);color:#aaa}
+.ref-legend{display:flex;flex-wrap:wrap;gap:clamp(4px,1vw,8px);justify-content:center;margin-top:clamp(4px,1vw,10px);font-size:clamp(10px,2.2vw,12px);color:#555;min-height:2.4em}
 .ref-leg-item{display:flex;align-items:center;gap:2px}
 .ref-leg-box{width:clamp(10px,2.5vw,14px);height:clamp(10px,2.5vw,14px);border-radius:2px;display:inline-block}
 .ref-leg-box.lg-step{background:rgba(230,140,0,.7)}
 .ref-leg-box.lg-slide{background:rgba(220,200,0,.45)}
 .ref-leg-box.lg-knight{background:rgba(0,180,80,.6)}
+.ref-nocap{font-size:clamp(9px,2vw,11px);color:#c04020;margin-top:4px;font-weight:bold;min-height:1.4em}
 
-/* ── Mobile: ボードの下にref+infoが横並び ── */
+/* ── Side Logo ── */
+#ref-logo{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:4px}
+#ref-logo img{max-width:clamp(100px,16vw,180px);max-height:100%;height:auto;opacity:1;object-fit:contain}
+
+/* ── Mobile: ボードの下にref+side-bottomが横並び ── */
 @media(max-width:850px){
   #game-container{
     flex-direction:column;align-items:center;
+    flex:1 1 auto;
     overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
-  #side-panel{flex-direction:row;align-items:flex-start;width:100%;justify-content:center}
+  #side-panel{flex-direction:row;align-items:stretch;width:100%;justify-content:center;gap:clamp(4px,1.5vw,10px)}
   #ref-panel{width:auto;min-width:0;max-width:none}
-  #info-panel{padding-top:4px}
+  #side-bottom{flex:1;min-width:0;align-items:center;justify-content:space-between}
+  #info-panel{padding-top:4px;text-align:center}
+  #ref-logo{flex:1;align-items:flex-end;padding:4px}
+  #ref-logo img{max-width:100%;max-height:100%;opacity:1}
 }
 </style>
 </head>
@@ -197,9 +274,12 @@ button:hover{background:#a0522d}
       <div id="ref-panel">
         <div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>
       </div>
-      <div id="info-panel">
-        <div id="status"></div>
-        <button onclick="initGame()">新規対局</button>
+      <div id="side-bottom">
+        <div id="info-panel">
+          <div id="status"></div>
+          <button onclick="initGame()">新規対局</button>
+        </div>
+        <div id="ref-logo"><img src="logo.png" alt="三国志将棋"></div>
       </div>
     </div>
   </div>
@@ -209,6 +289,13 @@ button:hover{background:#a0522d}
     <p>成りますか？</p>
     <button class="promo-btn" onclick="resolvePromo(true)">成る</button>
     <button class="promo-btn" onclick="resolvePromo(false)">不成</button>
+  </div>
+</div>
+<div id="result-overlay" onclick="closeResult()">
+  <div id="result-particles"></div>
+  <div id="result-box">
+    <div id="result-name"></div>
+    <div id="result-sub"></div>
   </div>
 </div>
 <script>
@@ -221,22 +308,22 @@ const SHU = 'shu', WEI = 'wei';
 
 const PT = {
   ryubi:   {n:'劉備', m:['cross'],                k:true,  v:9999},
-  kannu:   {n:'関羽', m:['rook','king'],           k:false, v:1200},
-  chohi:   {n:'張飛', m:['bishop','lance'],        k:false, v:900},
-  chouun:  {n:'超雲', m:['rook'],                  k:false, v:800},
+  kannu:   {n:'関羽', m:['rook','king'],           k:false, v:1200, nc:true},
+  chohi:   {n:'張飛', m:['bishop','lance'],        k:false, v:900,  nc:true},
+  chouun:  {n:'趙雲', m:['rook'],                  k:false, v:800,  nc:true},
   kouchuu: {n:'黄忠', m:['rook'],                  k:false, v:800},
   bachou:  {n:'馬超', m:['bishop'],                k:false, v:700},
-  koumei:  {n:'孔明', m:['king','knight'],         k:false, v:700},
-  houtou:  {n:'龐統', m:['king','knight'],         k:false, v:700},
+  koumei:  {n:'孔明', m:['king','knight'],         k:false, v:700,  nc:true},
+  houtou:  {n:'龐統', m:['king','knight'],         k:false, v:700,  nc:true},
   sousou:  {n:'曹操', m:['king','knight','lance'], k:true,  v:9999},
   kakuka:  {n:'郭嘉', m:['king'],                  k:false, v:500},
   juniku:  {n:'荀彧', m:['king'],                  k:false, v:500},
   junyuu:  {n:'荀攸', m:['silver'],                k:false, v:400},
   teiiku:  {n:'程昱', m:['silver'],                k:false, v:400},
-  kakouton:{n:'夏侯惇',m:['rook'],                 k:false, v:800},
-  kakouen: {n:'夏侯淵',m:['bishop'],               k:false, v:700},
+  kakouton:{n:'夏侯惇',m:['rook'],                 k:false, v:800,  nc:true},
+  kakouen: {n:'夏侯淵',m:['bishop'],               k:false, v:700,  nc:true},
   churyou: {n:'張遼', m:['bishop'],                k:false, v:700},
-  kyocho:  {n:'許褚', m:['rook'],                  k:false, v:800},
+  kyocho:  {n:'許褚', m:['rook'],                  k:false, v:800,  nc:true},
   jokou:   {n:'徐晃', m:['rook'],                  k:false, v:800},
   fu:      {n:'歩',   m:['pawn'],                  k:false, v:100},
   fu_p:    {n:'と金', m:['gold'],                  k:false, v:400},
@@ -300,8 +387,33 @@ function resizeBoard() {
   }
 }
 
-window.addEventListener('resize', resizeBoard);
-window.addEventListener('orientationchange', () => setTimeout(resizeBoard, 200));
+let refPanelWidth = 0;
+function recalcRefHeight(){
+  const p=document.getElementById('ref-panel');
+  if(!p)return;
+  const saved={t:refType,o:refOwner};
+  refPanelHeight=0; refPanelWidth=0;
+  p.style.minHeight=''; p.style.minWidth='';
+  refType='sousou'; refOwner=WEI;
+  renderMoveRef();
+  refPanelHeight=p.offsetHeight;
+  refPanelWidth=p.offsetWidth;
+  p.style.minHeight=refPanelHeight+'px';
+  p.style.minWidth=refPanelWidth+'px';
+  refType=saved.t; refOwner=saved.o;
+  renderMoveRef();
+  // PC版: side-panel の高さを board-section に合わせる
+  if(window.innerWidth>850){
+    const bs=document.getElementById('board-section');
+    const sp=document.getElementById('side-panel');
+    if(bs&&sp){sp.style.height=bs.offsetHeight+'px';}
+  } else {
+    const sp=document.getElementById('side-panel');
+    if(sp) sp.style.height='';
+  }
+}
+window.addEventListener('resize', ()=>{resizeBoard();recalcRefHeight();});
+window.addEventListener('orientationchange', ()=>setTimeout(()=>{resizeBoard();recalcRefHeight();},200));
 
 // ─── Board Initialization ───
 function initGame() {
@@ -310,6 +422,7 @@ function initGame() {
   turn = SHU; selCell = null; selHand = null; targets = [];
   gameOver = false; winner = null; lastFrom = null; lastTo = null;
   refType = null; refOwner = null; pendingPromo = null;
+  resultShown = false; closeResult();
 
   function ps(col, row, type) { board[row-1][9-col] = {type, owner:SHU}; }
   ps(5,9,'ryubi'); ps(4,9,'kannu'); ps(6,9,'chohi');
@@ -431,7 +544,10 @@ function doMove(mv){
   const undo={mv};
   if(mv.t==='move'){
     undo.srcPc=board[mv.fr][mv.fc];undo.dstPc=board[mv.tr][mv.tc];undo.captured=null;
-    if(undo.dstPc&&!PT[undo.dstPc.type].k){const capT=baseType(undo.dstPc.type);hands[undo.srcPc.owner].push(capT);undo.captured={type:capT,hand:undo.srcPc.owner};}
+    if(undo.dstPc&&!PT[undo.dstPc.type].k){
+      if(PT[baseType(undo.dstPc.type)].nc){undo.captured=null;}
+      else{const capT=baseType(undo.dstPc.type);hands[undo.srcPc.owner].push(capT);undo.captured={type:capT,hand:undo.srcPc.owner};}
+    }
     const movedPc=mv.promote?{type:PROMOTE_MAP[undo.srcPc.type],owner:undo.srcPc.owner}:undo.srcPc;
     board[mv.tr][mv.tc]=movedPc;board[mv.fr][mv.fc]=null;
   }else{
@@ -553,10 +669,12 @@ function genMovePattern(type) {
   return g;
 }
 
+let refPanelHeight = 0;
 function renderMoveRef() {
   const panel = document.getElementById('ref-panel');
   if (!refType) {
     panel.innerHTML = '<div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>';
+    if (refPanelHeight) panel.style.minHeight = refPanelHeight + 'px';
     return;
   }
   const piece = PT[refType];
@@ -602,7 +720,20 @@ function renderMoveRef() {
   if (hasKnight) h += '<span class="ref-leg-item"><span class="ref-leg-box lg-knight"></span>桂馬跳び</span>';
   h += '</div>';
 
+  if (PT[baseType(refType)].nc) {
+    h += '<div class="ref-nocap">※ 持ち駒不可（取っても持駒にならない）</div>';
+  } else {
+    h += '<div class="ref-nocap"></div>';
+  }
+
   panel.innerHTML = h;
+  requestAnimationFrame(() => {
+    const ht = panel.offsetHeight;
+    if (ht > refPanelHeight) {
+      refPanelHeight = ht;
+      panel.style.minHeight = ht + 'px';
+    }
+  });
 }
 
 // ═══════════════════════════════════════════
@@ -639,12 +770,16 @@ function renderBoard() {
       html+='<div class="'+cls+'" onclick="clickCell('+r+','+c+')">';
       if(pc){
         const name=PT[pc.type].n;
+        const isKing=PT[pc.type].k;
         const oc=pc.owner===SHU?'shu-p':'wei-p';
         const bg=pc.owner===SHU?'shu-bg':'wei-bg';
         const sz=name.length>=3?'sz3':name.length===1?'sz1':'sz2';
         const prm=pc.type in DEMOTE_MAP?' promoted':'';
-        html+='<div class="piece-bg '+bg+'"></div>';
-        html+='<div class="piece-text '+oc+' '+sz+prm+'">'+name+'</div>';
+        const kc=isKing?' king-bg':'';
+        const kw=isKing?' king-piece':'';
+        if(isKing) html+='<div class="king-border '+(pc.owner===SHU?'shu-king':'wei-king')+'"></div>';
+        html+='<div class="piece-bg '+bg+kc+'"></div>';
+        html+='<div class="piece-text '+oc+' '+sz+prm+kw+'">'+name+'</div>';
       } else if(isTarget) { html+='<div class="dot"></div>'; }
       html+='</div>';
     }
@@ -657,7 +792,7 @@ function renderHand(owner) {
   const label=owner===SHU?'【蜀 持駒】':'【魏 持駒】';
   let html='<span class="hand-label">'+label+'</span>';
   const counts={};for(const t of hands[owner])counts[t]=(counts[t]||0)+1;
-  if(Object.keys(counts).length===0) html+='<span style="color:#555;font-size:clamp(10px,2.5vw,13px)">なし</span>';
+  if(Object.keys(counts).length===0) html+='<span style="color:#888;font-size:clamp(10px,2.5vw,13px)">なし</span>';
   for(const[type,cnt]of Object.entries(counts)){
     const cls=owner===SHU?'shu':'wei';
     const sel=(selHand===type&&turn===owner)?' selected':'';
@@ -669,11 +804,63 @@ function renderHand(owner) {
   el.innerHTML=html;
 }
 
+let resultShown=false;
 function renderStatus() {
   const el=document.getElementById('status');
-  if(gameOver){el.textContent=winner===SHU?'蜀の勝利！':'魏の勝利！';el.style.color=winner===SHU?'#ff6b6b':'#6b9bff';return;}
-  if(turn===WEI){el.textContent='魏が考えています...';el.style.color='#6b9bff';}
-  else{el.textContent='蜀のターンです'+(inCheck(SHU)?' 【王手！】':'');el.style.color='#ffd700';}
+  if(gameOver){
+    const isWin=winner===SHU;
+    el.textContent=isWin?'劉備 勝利！':'劉備 敗北！';
+    el.style.color=isWin?'#c02030':'#666';
+    if(!resultShown){resultShown=true;setTimeout(()=>showResult(isWin),300);}
+    return;
+  }
+  if(turn===WEI){el.textContent='魏が考えています...';el.style.color='#2050b0';}
+  else{el.textContent='蜀のターンです'+(inCheck(SHU)?' 【王手！】':'');el.style.color='#b8860b';}
+}
+
+// ═══════════════════════════════════════════
+//  Result
+// ═══════════════════════════════════════════
+
+function showResult(isWin){
+  const ov=document.getElementById('result-overlay');
+  ov.style.display='';
+  ov.className='show '+(isWin?'win':'lose');
+  document.getElementById('result-name').textContent='劉備';
+  document.getElementById('result-sub').textContent=isWin?'勝 利':'敗 北';
+  // パーティクル
+  const pc=document.getElementById('result-particles');
+  pc.innerHTML='';
+  if(isWin){
+    const colors=['#e03050','#ff6b6b','#ffd700','#ff8c50'];
+    for(let i=0;i<40;i++){
+      const d=document.createElement('div');d.className='v-particle';
+      d.style.left=Math.random()*100+'%';
+      d.style.top=-10-Math.random()*20+'%';
+      d.style.width=d.style.height=4+Math.random()*8+'px';
+      d.style.background=colors[Math.floor(Math.random()*colors.length)];
+      d.style.borderRadius=Math.random()>.5?'50%':'2px';
+      d.style.animationDuration=1.5+Math.random()*2+'s';
+      d.style.animationDelay=Math.random()*1.2+'s';
+      pc.appendChild(d);
+    }
+  } else {
+    const colors=['#555','#777','#444','#666'];
+    for(let i=0;i<20;i++){
+      const d=document.createElement('div');d.className='d-particle';
+      d.style.left=Math.random()*100+'%';
+      d.style.width=d.style.height=3+Math.random()*6+'px';
+      d.style.background=colors[Math.floor(Math.random()*colors.length)];
+      d.style.borderRadius=Math.random()>.5?'50%':'1px';
+      d.style.animationDuration=2+Math.random()*3+'s';
+      d.style.animationDelay=.5+Math.random()*1.5+'s';
+      pc.appendChild(d);
+    }
+  }
+}
+function closeResult(){
+  const ov=document.getElementById('result-overlay');
+  ov.className='';ov.style.display='none';
 }
 
 // ═══════════════════════════════════════════
@@ -755,6 +942,8 @@ function clickHand(type) {
 // ═══════════════════════════════════════════
 resizeBoard();
 initGame();
+// 初期レンダリング後に ref-panel 高さ固定 + side-panel 高さ合わせ
+requestAnimationFrame(()=>recalcRefHeight());
 </script>
 </body>
 </html>
