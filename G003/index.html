@@ -249,8 +249,12 @@ button:hover{background:#a0522d}
     flex:1 1 auto;
     overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
+  .col-labels,.row-labels{display:none}
   #side-panel{flex-direction:row;align-items:stretch;width:100%;justify-content:center;gap:clamp(4px,1.5vw,10px)}
-  #ref-panel{width:auto;min-width:0;max-width:none}
+  #ref-panel{width:auto;min-width:0;max-width:none;padding:clamp(4px,0.8vw,8px)}
+  .ref-desc{display:none}
+  .ref-legend{min-height:2em;margin-top:clamp(2px,0.6vw,6px)}
+  .ref-nocap{margin-top:2px}
   #side-bottom{flex:1;min-width:0;align-items:center;justify-content:space-between}
   #info-panel{padding-top:4px;text-align:center}
   #ref-logo{flex:1;align-items:flex-end;padding:4px}
@@ -359,9 +363,11 @@ function resizeBoard() {
   const r = document.documentElement;
 
   if (isMobile) {
-    // Mobile: board must fit width. 9 cells + border(6px) + row-label(~18px) + padding(8px)
-    const availW = vw - 28;
-    const cs = Math.max(28, Math.min(62, Math.floor(availW / 9)));
+    // Mobile: board must fit width. 9 cells + border(6px) + padding(8px). Labels hidden.
+    const availW = vw - 14;
+    const csRaw = Math.max(28, Math.min(62, Math.floor(availW / 9)));
+    // 少し小さくして縦の空間を節約
+    const cs = Math.max(26, Math.floor(csRaw * 0.94));
     r.style.setProperty('--cs', cs + 'px');
     r.style.setProperty('--bs-font2', Math.max(12, Math.round(cs * 0.35)) + 'px');
     r.style.setProperty('--bs-font3', Math.max(9, Math.round(cs * 0.26)) + 'px');
@@ -369,8 +375,8 @@ function resizeBoard() {
     r.style.setProperty('--bg-w', Math.round(cs * 0.84) + 'px');
     r.style.setProperty('--bg-h', Math.round(cs * 0.87) + 'px');
     r.style.setProperty('--dot-sz', Math.max(8, Math.round(cs * 0.26)) + 'px');
-    // Ref panel mini board: fit within screen width
-    const refCs = Math.max(16, Math.min(30, Math.floor((vw - 40) / 9)));
+    // Ref panel mini board: 少し小さめに
+    const refCs = Math.max(14, Math.min(26, Math.floor((vw - 40) / 9)));
     r.style.setProperty('--ref-cs', refCs + 'px');
     r.style.setProperty('--ref-font', Math.max(8, Math.round(refCs * 0.43)) + 'px');
   } else {
@@ -393,13 +399,16 @@ function recalcRefHeight(){
   if(!p)return;
   const saved={t:refType,o:refOwner};
   refPanelHeight=0; refPanelWidth=0;
-  p.style.minHeight=''; p.style.minWidth='';
-  refType='sousou'; refOwner=WEI;
-  renderMoveRef();
-  refPanelHeight=p.offsetHeight;
-  refPanelWidth=p.offsetWidth;
-  p.style.minHeight=refPanelHeight+'px';
-  p.style.minWidth=refPanelWidth+'px';
+  p.style.height=''; p.style.width='';
+  // 曹操(desc最多)と関羽(nocap表示あり)の両方を測定し大きい方を採用
+  for(const t of ['sousou','kannu']){
+    refType=t; refOwner=WEI;
+    renderMoveRef();
+    if(p.offsetHeight>refPanelHeight) refPanelHeight=p.offsetHeight;
+    if(p.offsetWidth>refPanelWidth) refPanelWidth=p.offsetWidth;
+  }
+  p.style.height=refPanelHeight+'px';
+  p.style.width=refPanelWidth+'px';
   refType=saved.t; refOwner=saved.o;
   renderMoveRef();
   // PC版: side-panel の高さを board-section に合わせる
@@ -674,7 +683,6 @@ function renderMoveRef() {
   const panel = document.getElementById('ref-panel');
   if (!refType) {
     panel.innerHTML = '<div class="ref-empty">コマをタッチすると<br>移動範囲を表示します</div>';
-    if (refPanelHeight) panel.style.minHeight = refPanelHeight + 'px';
     return;
   }
   const piece = PT[refType];
@@ -727,13 +735,6 @@ function renderMoveRef() {
   }
 
   panel.innerHTML = h;
-  requestAnimationFrame(() => {
-    const ht = panel.offsetHeight;
-    if (ht > refPanelHeight) {
-      refPanelHeight = ht;
-      panel.style.minHeight = ht + 'px';
-    }
-  });
 }
 
 // ═══════════════════════════════════════════
