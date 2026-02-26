@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>三國志将棋 - 蜀 vs 魏</title>
+<title>三國志将棋</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none}
 
 html,body{
   width:100%;height:100%;height:100dvh;
@@ -14,20 +14,28 @@ html,body{
 body{
   font-family:'Hiragino Sans','Yu Gothic','Meiryo',sans-serif;
   background:#f0ede8;color:#3a2a1a;
+  display:flex;flex-direction:column;align-items:center;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+body::before{
+  content:'';position:fixed;top:-20px;left:-20px;right:-20px;bottom:-20px;
+  background:#f0ede8;
   background-image:
     linear-gradient(45deg,#e5e1da 25%,transparent 25%,transparent 75%,#e5e1da 75%),
     linear-gradient(45deg,#e5e1da 25%,transparent 25%,transparent 75%,#e5e1da 75%);
   background-size:20px 20px;
   background-position:0 0,10px 10px;
-  display:flex;flex-direction:column;align-items:center;
-  user-select:none;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  z-index:-1;
+  animation:bg-scroll 6s linear infinite;
+  will-change:transform;
 }
+@keyframes bg-scroll{to{transform:translate(20px,20px)}}
 
 #app{
   width:100%;height:100%;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  overflow:hidden;
+  overflow:hidden;position:relative;z-index:0;
 }
 
 /* ── Layout: PC=row, Mobile=column ── */
@@ -61,6 +69,8 @@ body{
 }
 .hand-piece.shu{background:#fbe8e8;color:#c02030}
 .hand-piece.wei{background:#e4ecf8;color:#2050b0}
+.hand-piece.go{background:#e0f5e8;color:#208040}
+.hand-piece.ryofu{background:#f0e8f8;color:#8030a0}
 .hand-piece:hover{border-color:#c8960a}
 .hand-piece.selected{border-color:#c8960a;box-shadow:0 0 8px #daa520}
 .hand-piece .count{font-size:clamp(9px,2vw,11px);color:#555;margin-left:2px}
@@ -97,7 +107,10 @@ body{
   position:relative;z-index:1
 }
 .piece-text.shu-p{color:#8b1020}
-.piece-text.wei-p{color:#1040a0;transform:rotate(180deg)}
+.piece-text.wei-p{color:#1040a0}
+.piece-text.go-p{color:#186030}
+.piece-text.ryofu-p{color:#602080}
+.piece-text.top-side{transform:rotate(180deg)}
 .piece-text.sz2{font-size:var(--bs-font2)}
 .piece-text.sz3{font-size:var(--bs-font3)}
 .piece-text.sz1{font-size:var(--bs-font1)}
@@ -108,13 +121,19 @@ body{
   clip-path:polygon(50% 2%,95% 18%,95% 98%,5% 98%,5% 18%);pointer-events:none
 }
 .piece-bg.shu-bg{background:rgba(255,225,185,.92)}
-.piece-bg.wei-bg{background:rgba(180,210,255,.85);transform:rotate(180deg)}
+.piece-bg.wei-bg{background:rgba(180,210,255,.85)}
+.piece-bg.go-bg{background:rgba(185,240,200,.90)}
+.piece-bg.ryofu-bg{background:rgba(220,190,240,.88)}
+.piece-bg.top-side{transform:rotate(180deg)}
 .king-border{
   position:absolute;width:calc(var(--bg-w) + 6px);height:calc(var(--bg-h) + 4px);
   clip-path:polygon(50% 0%,98% 16%,98% 98%,2% 98%,2% 16%);pointer-events:none;
 }
 .king-border.shu-king{background:#a02040}
-.king-border.wei-king{background:#3060c0;transform:rotate(180deg)}
+.king-border.wei-king{background:#3060c0}
+.king-border.go-king{background:#208040}
+.king-border.ryofu-king{background:#8030a0}
+.king-border.top-side{transform:rotate(180deg)}
 .piece-bg.king-bg{clip-path:polygon(50% 0%,98% 16%,98% 98%,2% 98%,2% 16%)}
 .piece-text.king-piece{font-weight:900}
 
@@ -210,6 +229,8 @@ button:hover{background:#a0522d}
 .ref-name{font-size:clamp(16px,3.5vw,22px);font-weight:bold}
 .ref-name.shu-p{color:#e03050}
 .ref-name.wei-p{color:#4080e0}
+.ref-name.go-p{color:#30a060}
+.ref-name.ryofu-p{color:#a050d0}
 .ref-king-badge{display:inline-block;font-size:clamp(9px,2vw,11px);color:#b8860b;border:1px solid #b8860b;border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .ref-desc{font-size:clamp(10px,2.2vw,13px);color:#555;margin-bottom:4px;line-height:1.4;min-height:4.2em}
 .ref-fwd{font-size:clamp(9px,2vw,11px);color:#555;margin-bottom:1px}
@@ -227,6 +248,8 @@ button:hover{background:#a0522d}
 .ref-cell.ref-center{color:#fff;font-size:var(--ref-font);z-index:1}
 .ref-center.ref-shu{background:rgba(180,16,48,.85)}
 .ref-center.ref-wei{background:rgba(16,64,160,.85)}
+.ref-center.ref-go{background:rgba(32,128,64,.85)}
+.ref-center.ref-ryofu{background:rgba(128,48,160,.85)}
 .ref-cell.ref-step{background:rgba(230,140,0,.7)}
 .ref-cell.ref-slide{background:rgba(220,200,0,.45)}
 .ref-cell.ref-knight{background:rgba(0,180,80,.6)}
@@ -239,8 +262,32 @@ button:hover{background:#a0522d}
 .ref-nocap{font-size:clamp(9px,2vw,11px);color:#c04020;margin-top:4px;font-weight:bold;min-height:1.4em}
 
 /* ── Side Logo ── */
-#ref-logo{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;overflow:hidden;padding:4px}
-#ref-logo img{max-width:clamp(100px,16vw,180px);max-height:100%;height:auto;opacity:1;object-fit:contain}
+#ref-logo{flex:1;display:flex;align-items:flex-end;justify-content:center;min-height:0;overflow:hidden;padding:4px}
+#ref-logo img{width:clamp(140px,22vw,280px);max-height:100%;height:auto;opacity:1;object-fit:contain}
+
+/* ── Title Screen ── */
+#title-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;gap:clamp(20px,5vw,40px);
+}
+#title-screen>img{width:clamp(200px,40vw,400px);height:auto}
+.select-dialog{
+  background:#fff;border:3px solid #c4a87a;border-radius:12px;
+  padding:clamp(20px,5vw,32px);text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);max-width:90vw;
+}
+.select-dialog h2{font-size:clamp(18px,5vw,28px);color:#3a2a1a;margin-bottom:clamp(16px,4vw,24px)}
+.select-btns{display:flex;flex-wrap:wrap;gap:clamp(8px,2vw,16px);justify-content:center}
+.faction-btn{
+  display:flex;flex-direction:column;align-items:center;
+  padding:clamp(12px,3vw,20px) clamp(16px,4vw,28px);
+  border:3px solid #c4a87a;border-radius:12px;cursor:pointer;
+  font-family:inherit;background:#f5f0e8;transition:all .2s;min-width:80px;
+  -webkit-tap-highlight-color:transparent;
+}
+.faction-btn:hover{transform:scale(1.05);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.faction-btn .faction-king{font-size:clamp(20px,5vw,32px);font-weight:900}
+.faction-btn .faction-name{font-size:clamp(12px,3vw,16px);color:#555;margin-top:4px}
 
 /* ── Mobile: ボードの下にref+side-bottomが横並び ── */
 @media(max-width:850px){
@@ -264,15 +311,22 @@ button:hover{background:#a0522d}
 </head>
 <body>
 <div id="app">
-  <div id="game-container">
+  <div id="title-screen">
+    <img src="logo.png" alt="三国志将棋">
+    <div class="select-dialog">
+      <h2 id="select-title">プレイヤー勢力を選択</h2>
+      <div class="select-btns" id="select-btns"></div>
+    </div>
+  </div>
+  <div id="game-container" style="display:none">
     <div id="board-section">
-      <div class="hand-area" id="wei-hand"><span class="hand-label">【魏 持駒】</span></div>
+      <div class="hand-area" id="top-hand"></div>
       <div class="col-labels" id="col-labels"></div>
       <div class="board-row-wrap">
         <div id="board"></div>
         <div class="row-labels" id="row-labels"></div>
       </div>
-      <div class="hand-area" id="shu-hand"><span class="hand-label">【蜀 持駒】</span></div>
+      <div class="hand-area" id="bottom-hand"></div>
     </div>
     <div id="side-panel">
       <div id="ref-panel">
@@ -281,7 +335,8 @@ button:hover{background:#a0522d}
       <div id="side-bottom">
         <div id="info-panel">
           <div id="status"></div>
-          <button onclick="initGame()">新規対局</button>
+          <button onclick="initGame();requestAnimationFrame(()=>recalcRefHeight())">新規対局</button>
+          <button onclick="showSelectScreen()">終了</button>
         </div>
         <div id="ref-logo"><img src="logo.png" alt="三国志将棋"></div>
       </div>
@@ -308,7 +363,6 @@ button:hover{background:#a0522d}
 // ═══════════════════════════════════════════
 
 const SZ = 9;
-const SHU = 'shu', WEI = 'wei';
 
 const PT = {
   ryubi:   {n:'劉備', m:['cross'],                k:true,  v:9999},
@@ -318,7 +372,7 @@ const PT = {
   kouchuu: {n:'黄忠', m:['rook'],                  k:false, v:800},
   bachou:  {n:'馬超', m:['bishop'],                k:false, v:700},
   koumei:  {n:'孔明', m:['king','knight'],         k:false, v:700,  nc:true},
-  houtou:  {n:'龐統', m:['king','knight'],         k:false, v:700,  nc:true},
+  houtou:  {n:'龐統', m:['king','knight'],         k:false, v:700},
   sousou:  {n:'曹操', m:['king','knight','lance'], k:true,  v:9999},
   kakuka:  {n:'郭嘉', m:['king'],                  k:false, v:500},
   juniku:  {n:'荀彧', m:['king'],                  k:false, v:500},
@@ -329,16 +383,58 @@ const PT = {
   churyou: {n:'張遼', m:['bishop'],                k:false, v:700},
   kyocho:  {n:'許褚', m:['rook'],                  k:false, v:800,  nc:true},
   jokou:   {n:'徐晃', m:['rook'],                  k:false, v:800},
+  sonken:  {n:'孫権', m:['king','knight'],           k:true,  v:9999},
+  kannei:  {n:'甘寧', m:['bishop'],                 k:false, v:700},
+  ryomou:  {n:'呂蒙', m:['king','rook'],             k:false, v:900,  nc:true},
+  shuyu:   {n:'周瑜', m:['king','bishop'],           k:false, v:850,  nc:true},
+  roshuku: {n:'魯粛', m:['king'],                    k:false, v:600},
+  rikuson: {n:'陸遜', m:['king','bishop'],           k:false, v:850,  nc:true},
+  kougai:  {n:'黄蓋', m:['rook'],                    k:false, v:800},
+  ryofu_k: {n:'呂布', m:['rook','bishop','knight'],k:true,  v:9999},
+  chinkyuu:{n:'陳宮', m:['king'],                  k:false, v:600,  nc:true},
   fu:      {n:'歩',   m:['pawn'],                  k:false, v:100},
   fu_p:    {n:'と金', m:['gold'],                  k:false, v:400},
+};
+
+// ─── Faction Definitions ───
+const FACTIONS = {
+  shu:  {name:'蜀', king:'劉備', kingType:'ryubi',  color:'#c02030',
+         layout:[
+           {col:5,row:9,type:'ryubi'},{col:4,row:9,type:'kannu'},{col:6,row:9,type:'chohi'},
+           {col:5,row:8,type:'chouun'},{col:4,row:8,type:'kouchuu'},{col:6,row:8,type:'bachou'},
+           {col:3,row:9,type:'koumei'},{col:7,row:9,type:'houtou'},
+           {col:3,row:7,type:'fu'},{col:4,row:7,type:'fu'},{col:5,row:7,type:'fu'},
+           {col:6,row:7,type:'fu'},{col:7,row:7,type:'fu'}
+         ]},
+  wei:  {name:'魏', king:'曹操', kingType:'sousou', color:'#2050b0',
+         layout:[
+           {col:5,row:9,type:'sousou'},{col:4,row:9,type:'kakuka'},{col:6,row:9,type:'juniku'},
+           {col:3,row:9,type:'junyuu'},{col:7,row:9,type:'teiiku'},
+           {col:2,row:8,type:'kakouton'},{col:8,row:8,type:'kakouen'},{col:1,row:8,type:'churyou'},
+           {col:5,row:8,type:'kyocho'},{col:9,row:8,type:'jokou'},
+           {col:3,row:7,type:'fu'},{col:4,row:7,type:'fu'},{col:5,row:7,type:'fu'},
+           {col:6,row:7,type:'fu'},{col:7,row:7,type:'fu'}
+         ]},
+  go:   {name:'呉', king:'孫権', kingType:'sonken', color:'#208040',
+         layout:[
+           {col:5,row:9,type:'sonken'},{col:4,row:9,type:'roshuku'},{col:6,row:9,type:'shuyu'},
+           {col:3,row:9,type:'rikuson'},{col:7,row:9,type:'ryomou'},
+           {col:3,row:8,type:'kougai'},{col:7,row:8,type:'kannei'},
+           {col:3,row:7,type:'fu'},{col:4,row:7,type:'fu'},{col:5,row:7,type:'fu'},
+           {col:6,row:7,type:'fu'},{col:7,row:7,type:'fu'}
+         ]},
+  ryofu:{name:'呂布', king:'呂布', kingType:'ryofu_k', color:'#8030a0',
+         layout:[
+           {col:5,row:9,type:'ryofu_k'},{col:4,row:9,type:'chinkyuu'}
+         ]}
 };
 
 // Promotion mappings
 const PROMOTE_MAP = {fu:'fu_p'};
 const DEMOTE_MAP = {fu_p:'fu'};
 function canPromote(type){return type in PROMOTE_MAP;}
-function inPromoZone(row,owner){return owner===SHU?row<=2:row>=6;}
-function mustPromote(type,row,owner){if(type==='fu')return owner===SHU?row===0:row===8;return false;}
+function inPromoZone(row,owner){return owner===playerFaction?row<=2:row>=6;}
+function mustPromote(type,row,owner){if(type==='fu')return owner===playerFaction?row===0:row===8;return false;}
 function baseType(type){return DEMOTE_MAP[type]||type;}
 
 // Movement type descriptions
@@ -354,6 +450,7 @@ const MOVE_DESC = {
 let board, hands, turn, selCell, selHand, targets, gameOver, winner, lastFrom, lastTo;
 let refType = null, refOwner = null;
 let pendingPromo = null;
+let playerFaction = 'shu', aiFaction = 'wei';
 
 // ─── Responsive Sizing ───
 function resizeBoard() {
@@ -363,10 +460,8 @@ function resizeBoard() {
   const r = document.documentElement;
 
   if (isMobile) {
-    // Mobile: board must fit width. 9 cells + border(6px) + padding(8px). Labels hidden.
     const availW = vw - 14;
     const csRaw = Math.max(28, Math.min(62, Math.floor(availW / 9)));
-    // 少し小さくして縦の空間を節約
     const cs = Math.max(26, Math.floor(csRaw * 0.94));
     r.style.setProperty('--cs', cs + 'px');
     r.style.setProperty('--bs-font2', Math.max(12, Math.round(cs * 0.35)) + 'px');
@@ -375,12 +470,10 @@ function resizeBoard() {
     r.style.setProperty('--bg-w', Math.round(cs * 0.84) + 'px');
     r.style.setProperty('--bg-h', Math.round(cs * 0.87) + 'px');
     r.style.setProperty('--dot-sz', Math.max(8, Math.round(cs * 0.26)) + 'px');
-    // Ref panel mini board: 少し小さめに
     const refCs = Math.max(14, Math.min(26, Math.floor((vw - 40) / 9)));
     r.style.setProperty('--ref-cs', refCs + 'px');
     r.style.setProperty('--ref-font', Math.max(8, Math.round(refCs * 0.43)) + 'px');
   } else {
-    // PC: fixed large size
     r.style.setProperty('--cs', '62px');
     r.style.setProperty('--bs-font2', '22px');
     r.style.setProperty('--bs-font3', '16px');
@@ -400,9 +493,9 @@ function recalcRefHeight(){
   const saved={t:refType,o:refOwner};
   refPanelHeight=0; refPanelWidth=0;
   p.style.height=''; p.style.width='';
-  // 曹操(desc最多)と関羽(nocap表示あり)の両方を測定し大きい方を採用
-  for(const t of ['sousou','kannu']){
-    refType=t; refOwner=WEI;
+  // 曹操(desc最多)、関羽(nocap)、呂布(3移動タイプ)を測定し大きい方を採用
+  for(const t of ['sousou','kannu','ryofu_k']){
+    refType=t; refOwner=aiFaction;
     renderMoveRef();
     if(p.offsetHeight>refPanelHeight) refPanelHeight=p.offsetHeight;
     if(p.offsetWidth>refPanelWidth) refPanelWidth=p.offsetWidth;
@@ -411,7 +504,6 @@ function recalcRefHeight(){
   p.style.width=refPanelWidth+'px';
   refType=saved.t; refOwner=saved.o;
   renderMoveRef();
-  // PC版: side-panel の高さを board-section に合わせる
   if(window.innerWidth>850){
     const bs=document.getElementById('board-section');
     const sp=document.getElementById('side-panel');
@@ -427,25 +519,24 @@ window.addEventListener('orientationchange', ()=>setTimeout(()=>{resizeBoard();r
 // ─── Board Initialization ───
 function initGame() {
   board = Array.from({length:SZ}, () => Array(SZ).fill(null));
-  hands = {shu:[], wei:[]};
-  turn = SHU; selCell = null; selHand = null; targets = [];
+  hands = {};
+  hands[playerFaction] = [];
+  hands[aiFaction] = [];
+  turn = playerFaction; selCell = null; selHand = null; targets = [];
   gameOver = false; winner = null; lastFrom = null; lastTo = null;
   refType = null; refOwner = null; pendingPromo = null;
   resultShown = false; closeResult();
 
-  function ps(col, row, type) { board[row-1][9-col] = {type, owner:SHU}; }
-  ps(5,9,'ryubi'); ps(4,9,'kannu'); ps(6,9,'chohi');
-  ps(5,8,'chouun'); ps(4,8,'kouchuu'); ps(6,8,'bachou');
-  ps(3,9,'koumei'); ps(7,9,'houtou');
-  ps(3,7,'fu'); ps(4,7,'fu'); ps(5,7,'fu'); ps(6,7,'fu'); ps(7,7,'fu');
+  // Player pieces (bottom side)
+  for(const p of FACTIONS[playerFaction].layout){
+    board[p.row-1][9-p.col] = {type:p.type, owner:playerFaction};
+  }
+  // AI pieces (top side, mirrored)
+  for(const p of FACTIONS[aiFaction].layout){
+    board[10-p.row-1][9-(10-p.col)] = {type:p.type, owner:aiFaction};
+  }
 
-  function pw(col, row, type) { board[10-row-1][9-(10-col)] = {type, owner:WEI}; }
-  pw(5,9,'sousou'); pw(4,9,'kakuka'); pw(6,9,'juniku');
-  pw(3,9,'junyuu'); pw(7,9,'teiiku');
-  pw(2,8,'kakouton'); pw(8,8,'kakouen'); pw(1,8,'churyou');
-  pw(5,8,'kyocho'); pw(9,8,'jokou');
-  pw(3,7,'fu'); pw(4,7,'fu'); pw(5,7,'fu'); pw(6,7,'fu'); pw(7,7,'fu');
-
+  document.title = '三國志将棋 - ' + FACTIONS[playerFaction].name + ' vs ' + FACTIONS[aiFaction].name;
   render();
   renderMoveRef();
 }
@@ -454,16 +545,17 @@ function initGame() {
 //  Move Generation
 // ═══════════════════════════════════════════
 
-function fwd(owner) { return owner === SHU ? -1 : 1; }
+function fwd(owner) { return owner === playerFaction ? -1 : 1; }
 
 function genMoves(type, r, c, owner) {
   const piece = PT[type]; const f = fwd(owner);
   const mvs = []; const seen = new Set();
   function add(nr, nc) {
     if (nr<0||nr>=SZ||nc<0||nc>=SZ) return false;
-    const key=nr*SZ+nc; if(seen.has(key)) return false;
     const t=board[nr][nc]; if(t&&t.owner===owner) return false;
-    seen.add(key); mvs.push({r:nr,c:nc}); return !t;
+    const key=nr*SZ+nc;
+    if(!seen.has(key)){seen.add(key); mvs.push({r:nr,c:nc});}
+    return !t;
   }
   function step(o){for(const[dr,dc]of o)add(r+dr,c+dc);}
   function slide(d){for(const[dr,dc]of d)for(let i=1;i<SZ;i++)if(!add(r+dr*i,c+dc*i))break;}
@@ -494,7 +586,7 @@ function findKing(owner){
 }
 function inCheck(owner){
   const kp=findKing(owner);if(!kp)return true;
-  const opp=owner===SHU?WEI:SHU;
+  const opp=owner===playerFaction?aiFaction:playerFaction;
   for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++)
     if(board[r][c]&&board[r][c].owner===opp){
       if(genMoves(board[r][c].type,r,c,opp).some(m=>m.r===kp.r&&m.c===kp.c))return true;
@@ -513,7 +605,7 @@ function legalDrops(type,owner){
   for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++){
     if(board[r][c])continue;
     if(type==='fu'){
-      if((owner===SHU&&r===0)||(owner===WEI&&r===8))continue;
+      if((owner===playerFaction&&r===0)||(owner===aiFaction&&r===8))continue;
       let nifu=false;for(let rr=0;rr<SZ;rr++)if(board[rr][c]&&board[rr][c].type==='fu'&&board[rr][c].owner===owner){nifu=true;break;}
       if(nifu)continue;
     }
@@ -579,17 +671,17 @@ function undoMove(undo){
 // ═══════════════════════════════════════════
 
 function evaluate(){
-  let shuK=false,weiK=false,score=0;
+  let playerK=false,aiK=false,score=0;
   for(let r=0;r<SZ;r++)for(let c=0;c<SZ;c++){
     const p=board[r][c];if(!p)continue;
-    if(PT[p.type].k){if(p.owner===SHU)shuK=true;else weiK=true;continue;}
+    if(PT[p.type].k){if(p.owner===playerFaction)playerK=true;else aiK=true;continue;}
     const v=PT[p.type].v;
-    if(p.owner===WEI){score+=v+r*3;}else{score-=v+(8-r)*3;}
+    if(p.owner===aiFaction){score+=v+r*3;}else{score-=v+(8-r)*3;}
   }
-  if(!shuK)return 99999;if(!weiK)return-99999;
-  for(const t of hands[WEI])score+=PT[t].v*0.8;
-  for(const t of hands[SHU])score-=PT[t].v*0.8;
-  if(inCheck(SHU))score+=150;if(inCheck(WEI))score-=150;
+  if(!playerK)return 99999;if(!aiK)return-99999;
+  for(const t of hands[aiFaction])score+=PT[t].v*0.8;
+  for(const t of hands[playerFaction])score-=PT[t].v*0.8;
+  if(inCheck(playerFaction))score+=150;if(inCheck(aiFaction))score-=150;
   return score;
 }
 function orderMoves(mvs){
@@ -602,7 +694,7 @@ function orderMoves(mvs){
 }
 function minimax(depth,alpha,beta,maximizing){
   if(depth===0)return evaluate();
-  const player=maximizing?WEI:SHU;
+  const player=maximizing?aiFaction:playerFaction;
   const mvs=orderMoves(allLegalMoves(player,false));
   if(mvs.length===0)return inCheck(player)?(maximizing?-90000+depth:90000-depth):0;
   if(maximizing){let best=-Infinity;for(const mv of mvs){const u=doMove(mv);best=Math.max(best,minimax(depth-1,alpha,beta,false));undoMove(u);alpha=Math.max(alpha,best);if(beta<=alpha)break;}return best;}
@@ -610,8 +702,8 @@ function minimax(depth,alpha,beta,maximizing){
 }
 function aiTurn(){
   if(gameOver)return;
-  const mvs=allLegalMoves(WEI,true);
-  if(mvs.length===0){gameOver=true;winner=SHU;render();return;}
+  const mvs=allLegalMoves(aiFaction,true);
+  if(mvs.length===0){gameOver=true;winner=playerFaction;render();return;}
   let bestScore=-Infinity,bestMvs=[];
   for(const mv of orderMoves(mvs)){
     const u=doMove(mv);const sc=minimax(1,-Infinity,Infinity,false);undoMove(u);
@@ -621,9 +713,9 @@ function aiTurn(){
   doMove(chosen);
   lastFrom=chosen.t==='move'?{r:chosen.fr,c:chosen.fc}:null;
   lastTo={r:chosen.tr,c:chosen.tc};
-  if(isCheckmate(SHU)){gameOver=true;winner=WEI;}
-  else if(hasNoMoves(SHU)){gameOver=true;winner=WEI;}
-  turn=SHU;render();
+  if(isCheckmate(playerFaction)){gameOver=true;winner=aiFaction;}
+  else if(hasNoMoves(playerFaction)){gameOver=true;winner=aiFaction;}
+  turn=playerFaction;render();
 }
 
 // ═══════════════════════════════════════════
@@ -686,11 +778,12 @@ function renderMoveRef() {
     return;
   }
   const piece = PT[refType];
-  const isShu = refOwner === SHU;
+  const factionClass = refOwner + '-p';
+  const refCenterClass = 'ref-' + refOwner;
   const grid = genMovePattern(refType);
 
   let h = '<div class="ref-title">';
-  h += '<span class="ref-name '+(isShu?'shu-p':'wei-p')+'">'+piece.n+'</span>';
+  h += '<span class="ref-name '+factionClass+'">'+piece.n+'</span>';
   if (piece.k) h += '<span class="ref-king-badge">王将</span>';
   if (refType in DEMOTE_MAP) h += '<span class="ref-king-badge" style="color:#ff6600;border-color:#ff6600">成</span>';
   h += '</div>';
@@ -708,7 +801,7 @@ function renderMoveRef() {
       let content = '';
       switch(grid[r][c]) {
         case 4:
-          cls += ' ref-center '+(isShu?'ref-shu':'ref-wei');
+          cls += ' ref-center '+refCenterClass;
           content = piece.n.substring(0,1);
           break;
         case 1: cls += ' ref-step'; break;
@@ -742,7 +835,7 @@ function renderMoveRef() {
 // ═══════════════════════════════════════════
 
 function render() {
-  renderBoard(); renderHand(SHU); renderHand(WEI); renderStatus(); renderLabels();
+  renderBoard(); renderHand(playerFaction); renderHand(aiFaction); renderStatus(); renderLabels();
 }
 
 function renderLabels() {
@@ -772,15 +865,17 @@ function renderBoard() {
       if(pc){
         const name=PT[pc.type].n;
         const isKing=PT[pc.type].k;
-        const oc=pc.owner===SHU?'shu-p':'wei-p';
-        const bg=pc.owner===SHU?'shu-bg':'wei-bg';
+        const isAi=pc.owner===aiFaction;
+        const oc=pc.owner+'-p';
+        const bg=pc.owner+'-bg';
+        const rot=isAi?' top-side':'';
         const sz=name.length>=3?'sz3':name.length===1?'sz1':'sz2';
         const prm=pc.type in DEMOTE_MAP?' promoted':'';
         const kc=isKing?' king-bg':'';
         const kw=isKing?' king-piece':'';
-        if(isKing) html+='<div class="king-border '+(pc.owner===SHU?'shu-king':'wei-king')+'"></div>';
-        html+='<div class="piece-bg '+bg+kc+'"></div>';
-        html+='<div class="piece-text '+oc+' '+sz+prm+kw+'">'+name+'</div>';
+        if(isKing) html+='<div class="king-border '+pc.owner+'-king'+rot+'"></div>';
+        html+='<div class="piece-bg '+bg+kc+rot+'"></div>';
+        html+='<div class="piece-text '+oc+' '+sz+prm+kw+rot+'">'+name+'</div>';
       } else if(isTarget) { html+='<div class="dot"></div>'; }
       html+='</div>';
     }
@@ -789,15 +884,17 @@ function renderBoard() {
 }
 
 function renderHand(owner) {
-  const el=document.getElementById(owner===SHU?'shu-hand':'wei-hand');
-  const label=owner===SHU?'【蜀 持駒】':'【魏 持駒】';
+  const isPlayer = owner===playerFaction;
+  const el=document.getElementById(isPlayer?'bottom-hand':'top-hand');
+  const fData=FACTIONS[owner];
+  const label='【'+fData.name+' 持駒】';
   let html='<span class="hand-label">'+label+'</span>';
   const counts={};for(const t of hands[owner])counts[t]=(counts[t]||0)+1;
   if(Object.keys(counts).length===0) html+='<span style="color:#888;font-size:clamp(10px,2.5vw,13px)">なし</span>';
   for(const[type,cnt]of Object.entries(counts)){
-    const cls=owner===SHU?'shu':'wei';
+    const cls=owner;
     const sel=(selHand===type&&turn===owner)?' selected':'';
-    const click=(owner===SHU&&turn===SHU&&!gameOver)?' onclick="clickHand(\''+type+'\')"':'';
+    const click=(isPlayer&&turn===playerFaction&&!gameOver)?' onclick="clickHand(\''+type+'\')"':'';
     html+='<span class="hand-piece '+cls+sel+'"'+click+'>'+PT[type].n;
     if(cnt>1)html+='<span class="count">x'+cnt+'</span>';
     html+='</span>';
@@ -808,15 +905,17 @@ function renderHand(owner) {
 let resultShown=false;
 function renderStatus() {
   const el=document.getElementById('status');
+  const pf=FACTIONS[playerFaction];
+  const af=FACTIONS[aiFaction];
   if(gameOver){
-    const isWin=winner===SHU;
-    el.textContent=isWin?'劉備 勝利！':'劉備 敗北！';
-    el.style.color=isWin?'#c02030':'#666';
+    const isWin=winner===playerFaction;
+    el.textContent=pf.king+(isWin?' 勝利！':' 敗北！');
+    el.style.color=isWin?pf.color:'#666';
     if(!resultShown){resultShown=true;setTimeout(()=>showResult(isWin),300);}
     return;
   }
-  if(turn===WEI){el.textContent='魏が考えています...';el.style.color='#2050b0';}
-  else{el.textContent='蜀のターンです'+(inCheck(SHU)?' 【王手！】':'');el.style.color='#b8860b';}
+  if(turn===aiFaction){el.textContent=af.name+'が考えています...';el.style.color=af.color;}
+  else{el.textContent=pf.name+'のターンです'+(inCheck(playerFaction)?' 【王手！】':'');el.style.color='#b8860b';}
 }
 
 // ═══════════════════════════════════════════
@@ -827,9 +926,8 @@ function showResult(isWin){
   const ov=document.getElementById('result-overlay');
   ov.style.display='';
   ov.className='show '+(isWin?'win':'lose');
-  document.getElementById('result-name').textContent='劉備';
+  document.getElementById('result-name').textContent=FACTIONS[playerFaction].king;
   document.getElementById('result-sub').textContent=isWin?'勝 利':'敗 北';
-  // パーティクル
   const pc=document.getElementById('result-particles');
   pc.innerHTML='';
   if(isWin){
@@ -865,6 +963,54 @@ function closeResult(){
 }
 
 // ═══════════════════════════════════════════
+//  Selection Screen
+// ═══════════════════════════════════════════
+
+function showSelectScreen(){
+  document.getElementById('title-screen').style.display='';
+  document.getElementById('game-container').style.display='none';
+  const title=document.getElementById('select-title');
+  const btns=document.getElementById('select-btns');
+  title.textContent='プレイヤー勢力を選択';
+  btns.innerHTML='';
+  for(const[id,f] of Object.entries(FACTIONS)){
+    const btn=document.createElement('div');
+    btn.className='faction-btn';
+    btn.style.borderColor=f.color;
+    btn.innerHTML='<div class="faction-king" style="color:'+f.color+'">'+f.king+'</div>'
+                 +'<div class="faction-name">'+f.name+'</div>';
+    btn.onclick=()=>selectPlayerFaction(id);
+    btns.appendChild(btn);
+  }
+}
+
+function selectPlayerFaction(factionId){
+  playerFaction=factionId;
+  const title=document.getElementById('select-title');
+  const btns=document.getElementById('select-btns');
+  title.textContent='対戦相手を選択';
+  btns.innerHTML='';
+  for(const[id,f] of Object.entries(FACTIONS)){
+    if(id===playerFaction) continue;
+    const btn=document.createElement('div');
+    btn.className='faction-btn';
+    btn.style.borderColor=f.color;
+    btn.innerHTML='<div class="faction-king" style="color:'+f.color+'">'+f.king+'</div>'
+                 +'<div class="faction-name">'+f.name+'</div>';
+    btn.onclick=()=>selectAiFaction(id);
+    btns.appendChild(btn);
+  }
+}
+
+function selectAiFaction(factionId){
+  aiFaction=factionId;
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('game-container').style.display='';
+  initGame();
+  requestAnimationFrame(()=>recalcRefHeight());
+}
+
+// ═══════════════════════════════════════════
 //  Event Handlers
 // ═══════════════════════════════════════════
 
@@ -878,16 +1024,16 @@ function showRef(type, owner) {
 function executeMove(fr,fc,tr,tc,promote){
   doMove({t:'move',fr,fc,tr,tc,promote});
   lastFrom={r:fr,c:fc};lastTo={r:tr,c:tc};clearSelection();
-  if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
-  else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
-  turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);
+  if(isCheckmate(aiFaction)){gameOver=true;winner=playerFaction;}
+  else if(hasNoMoves(aiFaction)){gameOver=true;winner=playerFaction;}
+  turn=aiFaction;render();if(!gameOver)setTimeout(aiTurn,200);
 }
 function executeDrop(type,r,c){
-  doMove({t:'drop',pt:type,tr:r,tc:c,owner:SHU});
+  doMove({t:'drop',pt:type,tr:r,tc:c,owner:playerFaction});
   lastFrom=null;lastTo={r,c};clearSelection();
-  if(isCheckmate(WEI)){gameOver=true;winner=SHU;}
-  else if(hasNoMoves(WEI)){gameOver=true;winner=SHU;}
-  turn=WEI;render();if(!gameOver)setTimeout(aiTurn,200);
+  if(isCheckmate(aiFaction)){gameOver=true;winner=playerFaction;}
+  else if(hasNoMoves(aiFaction)){gameOver=true;winner=playerFaction;}
+  turn=aiFaction;render();if(!gameOver)setTimeout(aiTurn,200);
 }
 function showPromoDialog(){document.getElementById('promo-overlay').style.display='flex';}
 function resolvePromo(doP){
@@ -900,15 +1046,15 @@ function clickCell(r, c) {
   const pcAt = board[r][c];
   if (pcAt) showRef(pcAt.type, pcAt.owner);
 
-  if (gameOver || turn !== SHU) return;
+  if (gameOver || turn !== playerFaction) return;
 
   if (targets.some(t=>t.r===r&&t.c===c)) {
     if (selCell) {
       const srcPc=board[selCell.r][selCell.c];
       const cp=canPromote(srcPc.type);
-      const inZ=cp&&(inPromoZone(selCell.r,SHU)||inPromoZone(r,SHU));
+      const inZ=cp&&(inPromoZone(selCell.r,playerFaction)||inPromoZone(r,playerFaction));
       if(inZ){
-        if(mustPromote(srcPc.type,r,SHU)){executeMove(selCell.r,selCell.c,r,c,true);}
+        if(mustPromote(srcPc.type,r,playerFaction)){executeMove(selCell.r,selCell.c,r,c,true);}
         else{pendingPromo={fr:selCell.r,fc:selCell.c,tr:r,tc:c};showPromoDialog();}
       }else{executeMove(selCell.r,selCell.c,r,c,false);}
       return;
@@ -919,7 +1065,7 @@ function clickCell(r, c) {
     }
   }
 
-  if (pcAt && pcAt.owner === SHU) {
+  if (pcAt && pcAt.owner === playerFaction) {
     selHand=null;
     if(selCell&&selCell.r===r&&selCell.c===c){clearSelection();}
     else{selCell={r,c};targets=legalMoves(r,c);}
@@ -930,11 +1076,11 @@ function clickCell(r, c) {
 
 function clickHand(type) {
   if(pendingPromo)return;
-  if(gameOver||turn!==SHU)return;
-  showRef(type, SHU);
+  if(gameOver||turn!==playerFaction)return;
+  showRef(type, playerFaction);
   selCell=null;
   if(selHand===type){clearSelection();}
-  else{selHand=type;targets=legalDrops(type,SHU);}
+  else{selHand=type;targets=legalDrops(type,playerFaction);}
   render();
 }
 
@@ -942,9 +1088,7 @@ function clickHand(type) {
 //  Start
 // ═══════════════════════════════════════════
 resizeBoard();
-initGame();
-// 初期レンダリング後に ref-panel 高さ固定 + side-panel 高さ合わせ
-requestAnimationFrame(()=>recalcRefHeight());
+showSelectScreen();
 </script>
 </body>
 </html>
