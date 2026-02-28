@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Match3 Action</title>
+<style>
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+:root {
+  --cell-size: clamp(48px, 12vw, 80px);
+  --gap: clamp(2px, 0.5vw, 4px);
+  --board-size: calc(var(--cell-size) * 6 + var(--gap) * 5);
+  --border-radius: clamp(6px, 1.5vw, 12px);
+}
+html, body {
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  background: #1a1a2e;
+  font-family: 'Segoe UI', sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#game-title {
+  color: #e0e0ff;
+  font-size: clamp(20px, 5vw, 36px);
+  font-weight: bold;
+  margin-bottom: clamp(12px, 3vw, 24px);
+  text-shadow: 0 0 20px rgba(100, 100, 255, 0.5);
+}
+#board {
+  position: relative;
+  width: var(--board-size);
+  height: var(--board-size);
+  background: #16213e;
+  border-radius: var(--border-radius);
+  border: 2px solid #0f3460;
+  box-shadow: 0 0 30px rgba(0, 100, 255, 0.2);
+  overflow: hidden;
+}
+.cell-bg {
+  position: absolute;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: calc(var(--border-radius) / 2);
+}
+.panel {
+  position: absolute;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  border-radius: calc(var(--border-radius) / 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--cell-size) * 0.5);
+  cursor: grab;
+  transition: none;
+  z-index: 1;
+  will-change: transform;
+}
+.panel.falling {
+  transition: top 0.3s ease-in;
+}
+.panel.swapping {
+  transition: left 0.2s ease-out;
+}
+.panel.matched {
+  animation: matchFlash 0.5s ease-out forwards;
+  z-index: 2;
+}
+@keyframes matchFlash {
+  0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+  30% { transform: scale(1.2); filter: brightness(2); }
+  100% { transform: scale(0); opacity: 0; filter: brightness(3); }
+}
+.panel.grabbed {
+  cursor: grabbing;
+  z-index: 10;
+  filter: brightness(1.3);
+  transform: scale(1.08);
+}
+/* 8 panel types */
+.panel[data-type="0"] { background: linear-gradient(135deg, #ff4444, #cc0000); }
+.panel[data-type="1"] { background: linear-gradient(135deg, #44aaff, #0066cc); }
+.panel[data-type="2"] { background: linear-gradient(135deg, #44dd44, #008800); }
+.panel[data-type="3"] { background: linear-gradient(135deg, #ffdd44, #cc9900); }
+.panel[data-type="4"] { background: linear-gradient(135deg, #dd44ff, #8800aa); }
+.panel[data-type="5"] { background: linear-gradient(135deg, #ff8844, #cc4400); }
+.panel[data-type="6"] { background: linear-gradient(135deg, #44ffdd, #00aa88); }
+.panel[data-type="7"] { background: linear-gradient(135deg, #ff88aa, #cc4466); }
+
+@media (max-width: 850px) {
+  :root {
+    --cell-size: clamp(44px, 14vw, 70px);
+  }
+}
+</style>
+</head>
+<body>
+<div id="game-title">Match 3 Action</div>
+<div id="board"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  const COLS = 6;
+  const ROWS = 6;
+  const TYPES = 8;
+  const SYMBOLS = ['🔥','💧','🍀','⭐','🔮','🎃','💎','🌸'];
+
+  let board = [];       // board[row][col] = type (0-7)
+  let panelEls = [];    // panelEls[row][col] = DOM element
+  let boardEl = document.getElementById('board');
+  let chainRunning = false; // true while resolveChains loop is active
+
+  // --- Sizing ---
+  // Measure actual computed px from CSS clamp() via a temporary element
+  let _cellSize = 0;
+  let _gap = 0;
+
+  function measureSizes() {
+    const m = document.createElement('div');
+    m.style.cssText = 'position:absolute;visibility:hidden;width:var(--cell-size);height:var(--gap);';
+    boardEl.appendChild(m);
+    _cellSize = m.getBoundingClientRect().width;
+    _gap = m.getBoundingClientRect().height;
+    m.remove();
+    // Set board size explicitly in px (CSS calc with clamp can fail for height)
+    const boardSize = _cellSize * COLS + _gap * (COLS - 1);
+    boardEl.style.width = boardSize + 'px';
+    boardEl.style.height = boardSize + 'px';
+  }
+
+  function getCellSize() { return _cellSize; }
+  function getGap() { return _gap; }
+  function cellX(col) { return col * (_cellSize + _gap); }
+  function cellY(row) { return row * (_cellSize + _gap); }
+
+  // --- Board Init ---
+  function initBoard() {
+    board = [];
+    for (let r = 0; r < ROWS; r++) {
+      board[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        board[r][c] = randomType(r, c);
+      }
+    }
+  }
+
+  function randomType(row, col) {
+    // Avoid creating matches on init
+    let type;
+    let attempts = 0;
+    do {
+      type = Math.floor(Math.random() * TYPES);
+      attempts++;
+    } while (attempts < 50 && wouldMatch(row, col, type));
+    return type;
+  }
+
+  function wouldMatch(row, col, type) {
+    // Check vertical 3
+    if (row >= 2 && board[row-1][col] === type && board[row-2][col] === type) return true;
+    // Check horizontal 3
+    if (col >= 2 && board[row][col-1] === type && board[row][col-2] === type) return true;
+    return false;
+  }
+
+  // --- Render ---
+  function renderBackground() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const bg = document.createElement('div');
+        bg.className = 'cell-bg';
+        bg.style.left = cellX(c) + 'px';
+        bg.style.top = cellY(r) + 'px';
+        boardEl.appendChild(bg);
+      }
+    }
+  }
+
+  function renderPanels() {
+    // Clear old panels
+    document.querySelectorAll('.panel').forEach(el => el.remove());
+    panelEls = [];
+    for (let r = 0; r < ROWS; r++) {
+      panelEls[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        panelEls[r][c] = createPanelEl(r, c, board[r][c]);
+      }
+    }
+  }
+
+  function createPanelEl(row, col, type) {
+    const el = document.createElement('div');
+    el.className = 'panel';
+    el.dataset.type = type;
+    el.dataset.row = row;
+    el.dataset.col = col;
+    el.textContent = SYMBOLS[type];
+    el.style.left = cellX(col) + 'px';
+    el.style.top = cellY(row) + 'px';
+    boardEl.appendChild(el);
+    return el;
+  }
+
+  // --- Match Detection ---
+  function findMatches() {
+    const matched = new Set();
+
+    // Vertical: 3+ in a column
+    for (let c = 0; c < COLS; c++) {
+      let run = 1;
+      for (let r = 1; r < ROWS; r++) {
+        if (board[r][c] === board[r-1][c] && board[r][c] !== -1) {
+          run++;
+        } else {
+          if (run >= 3) {
+            for (let i = r - run; i < r; i++) matched.add(i * COLS + c);
+          }
+          run = 1;
+        }
+      }
+      if (run >= 3) {
+        for (let i = ROWS - run; i < ROWS; i++) matched.add(i * COLS + c);
+      }
+    }
+
+    // Horizontal: 3+ in a row
+    for (let r = 0; r < ROWS; r++) {
+      let run = 1;
+      for (let c = 1; c < COLS; c++) {
+        if (board[r][c] === board[r][c-1] && board[r][c] !== -1) {
+          run++;
+        } else {
+          if (run >= 3) {
+            for (let i = c - run; i < c; i++) matched.add(r * COLS + i);
+          }
+          run = 1;
+        }
+      }
+      if (run >= 3) {
+        for (let i = COLS - run; i < COLS; i++) matched.add(r * COLS + i);
+      }
+    }
+
+    return matched;
+  }
+
+  // --- Remove Matched ---
+  async function removeMatched(matched) {
+    if (matched.size === 0) return false;
+
+    // If the grabbed panel is being matched, cancel drag
+    if (dragState) {
+      const dragIdx = dragState.row * COLS + dragState.currentCol;
+      if (matched.has(dragIdx)) {
+        const el = panelEls[dragState.row][dragState.currentCol];
+        if (el) { el.classList.remove('grabbed'); el.style.zIndex = ''; }
+        dragState = null;
+      }
+    }
+
+    // Mark matched panels immediately in board data so they can't be grabbed
+    matched.forEach(idx => {
+      const r = Math.floor(idx / COLS);
+      const c = idx % COLS;
+      board[r][c] = -1;
+    });
+
+    // Animate
+    const promises = [];
+    matched.forEach(idx => {
+      const r = Math.floor(idx / COLS);
+      const c = idx % COLS;
+      const el = panelEls[r][c];
+      if (el) {
+        el.classList.add('matched');
+        promises.push(new Promise(res => {
+          el.addEventListener('animationend', () => {
+            el.remove();
+            res();
+          }, { once: true });
+        }));
+      }
+      panelEls[r][c] = null;
+    });
+
+    await Promise.all(promises);
+    return true;
+  }
+
+  // --- Gravity & Refill ---
+  async function applyGravity() {
+    const fallPromises = [];
+
+    for (let c = 0; c < COLS; c++) {
+      // Skip the column the user is currently dragging in
+      if (dragState && dragState.currentCol === c) continue;
+      // Collect non-empty from bottom
+      let writeRow = ROWS - 1;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r][c] !== -1) {
+          if (r !== writeRow) {
+            // Move panel down
+            board[writeRow][c] = board[r][c];
+            board[r][c] = -1;
+            const el = panelEls[r][c];
+            panelEls[writeRow][c] = el;
+            panelEls[r][c] = null;
+            if (el) {
+              el.dataset.row = writeRow;
+              el.classList.add('falling');
+              el.style.top = cellY(writeRow) + 'px';
+              fallPromises.push(waitTransition(el));
+            }
+          }
+          writeRow--;
+        }
+      }
+
+      // Fill empty cells from top
+      for (let r = writeRow; r >= 0; r--) {
+        const type = Math.floor(Math.random() * TYPES);
+        board[r][c] = type;
+        const el = createPanelEl(r, c, type);
+        // Start above board
+        el.style.top = cellY(r - (writeRow + 1)) + 'px';
+        panelEls[r][c] = el;
+        // Force reflow then animate
+        el.offsetHeight;
+        el.classList.add('falling');
+        el.style.top = cellY(r) + 'px';
+        fallPromises.push(waitTransition(el));
+      }
+    }
+
+    await Promise.all(fallPromises);
+
+    // Clean up falling class
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (panelEls[r][c]) panelEls[r][c].classList.remove('falling');
+      }
+    }
+  }
+
+  function waitTransition(el) {
+    return new Promise(res => {
+      el.addEventListener('transitionend', () => res(), { once: true });
+      // Safety timeout
+      setTimeout(res, 500);
+    });
+  }
+
+  // --- Chain Resolve (runs concurrently with drag) ---
+  async function resolveChains() {
+    if (chainRunning) return;
+    chainRunning = true;
+    let hadMatch = true;
+    while (hadMatch) {
+      await sleep(100);
+      const matched = findMatches();
+      hadMatch = await removeMatched(matched);
+      if (hadMatch) {
+        await sleep(100);
+        await applyGravity();
+      }
+    }
+    chainRunning = false;
+  }
+
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  // --- Mouse/Touch Drag (continuous swap, concurrent with chain) ---
+  let dragState = null;
+
+  function getPointerPos(e) {
+    if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onPointerDown(e) {
+    const pos = getPointerPos(e);
+    const rect = boardEl.getBoundingClientRect();
+    const x = pos.x - rect.left;
+    const y = pos.y - rect.top;
+    const step = _cellSize + _gap;
+    const col = Math.floor(x / step);
+    const row = Math.floor(y / step);
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+
+    const el = panelEls[row][col];
+    if (!el) return;
+    // Can't grab panels that are falling, matched, or empty
+    if (el.classList.contains('falling')) return;
+    if (el.classList.contains('matched')) return;
+    if (board[row][col] === -1) return;
+
+    dragState = {
+      row: row,
+      currentCol: col,
+      hasMoved: false
+    };
+    el.classList.add('grabbed');
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (!dragState) return;
+    const pos = getPointerPos(e);
+    const { row, currentCol } = dragState;
+
+    // Calculate cursor distance from current cell center
+    const rect = boardEl.getBoundingClientRect();
+    const cellCenterX = rect.left + cellX(currentCol) + _cellSize / 2;
+    const dx = pos.x - cellCenterX;
+    const threshold = (_cellSize + _gap) * 0.5;
+
+    // If cursor crossed threshold, trigger one swap
+    if (Math.abs(dx) > threshold) {
+      const dir = dx > 0 ? 1 : -1;
+      const nextCol = currentCol + dir;
+      if (nextCol >= 0 && nextCol < COLS) {
+        if (swapDuringDrag(row, currentCol, nextCol)) {
+          dragState.hasMoved = true;
+          dragState.currentCol = nextCol;
+        }
+      }
+    }
+
+    e.preventDefault();
+  }
+
+  function swapDuringDrag(row, fromCol, toCol) {
+    const elOther = panelEls[row][toCol];
+    // Can't swap with empty, falling, or matched panels
+    if (!elOther || board[row][toCol] === -1) return false;
+    if (elOther.classList.contains('falling')) return false;
+    if (elOther.classList.contains('matched')) return false;
+
+    // Swap board data
+    const tmp = board[row][fromCol];
+    board[row][fromCol] = board[row][toCol];
+    board[row][toCol] = tmp;
+
+    // Swap element references
+    const elGrabbed = panelEls[row][fromCol];
+    panelEls[row][fromCol] = elOther;
+    panelEls[row][toCol] = elGrabbed;
+
+    // Animate the displaced panel to its new position
+    elOther.dataset.col = fromCol;
+    elOther.classList.remove('swapping');
+    elOther.offsetHeight;
+    elOther.classList.add('swapping');
+    elOther.style.left = cellX(fromCol) + 'px';
+    setTimeout(() => elOther.classList.remove('swapping'), 200);
+
+    // Animate the grabbed panel to its new grid position
+    if (elGrabbed) {
+      elGrabbed.dataset.col = toCol;
+      elGrabbed.classList.remove('swapping');
+      elGrabbed.offsetHeight;
+      elGrabbed.classList.add('swapping');
+      elGrabbed.style.left = cellX(toCol) + 'px';
+      setTimeout(() => elGrabbed.classList.remove('swapping'), 200);
+    }
+    return true;
+  }
+
+  function onPointerUp(e) {
+    if (!dragState) return;
+    const { row, currentCol } = dragState;
+    const el = panelEls[row][currentCol];
+
+    if (el) {
+      el.classList.remove('grabbed');
+    }
+
+    dragState = null;
+
+    // Start chain if none running
+    if (!chainRunning) {
+      setTimeout(() => resolveChains(), 220);
+    }
+  }
+
+  // --- Events ---
+  boardEl.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerUp);
+  boardEl.addEventListener('touchstart', onPointerDown, { passive: false });
+  window.addEventListener('touchmove', onPointerMove, { passive: false });
+  window.addEventListener('touchend', onPointerUp);
+
+  // --- Resize ---
+  let resizeTimer;
+  function onResize() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      measureSizes();
+      // Reposition all panels
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const el = panelEls[r][c];
+          if (el) {
+            el.style.left = cellX(c) + 'px';
+            el.style.top = cellY(r) + 'px';
+          }
+        }
+      }
+      // Reposition backgrounds
+      const bgs = document.querySelectorAll('.cell-bg');
+      let idx = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (bgs[idx]) {
+            bgs[idx].style.left = cellX(c) + 'px';
+            bgs[idx].style.top = cellY(r) + 'px';
+          }
+          idx++;
+        }
+      }
+    }, 200);
+  }
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
+
+  // --- Start ---
+  measureSizes();
+  initBoard();
+  renderBackground();
+  renderPanels();
+  // Initial chain resolve (clear any accidental matches)
+  resolveChains();
+
+})();
+</script>
+</body>
+</html>
